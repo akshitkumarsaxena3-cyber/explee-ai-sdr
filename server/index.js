@@ -29,6 +29,21 @@ if (geminiApiKey) {
   }
 }
 
+async function generateWithGemini(prompt) {
+  if (!genAI) return null;
+  const models = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+  for (const mName of models) {
+    try {
+      const model = genAI.getGenerativeModel({ model: mName });
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (err) {
+      // continue to next model
+    }
+  }
+  return null;
+}
+
 // -------------------------------------------------------------
 // In-Memory Database State (Production uses PostgreSQL / schema.sql)
 // -------------------------------------------------------------
@@ -366,7 +381,6 @@ app.post('/api/onboarding/analyze-domain', async (req, res) => {
   // If Gemini is available, attempt intelligent reasoning
   if (genAI) {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const prompt = `Analyze this company website domain: "${url}".
 Return ONLY a valid JSON object with the following fields:
 {
@@ -380,12 +394,13 @@ Return ONLY a valid JSON object with the following fields:
   "keyPainPoints": ["pain1", "pain2", "pain3"],
   "confidenceScore": 95
 }`;
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-      state.icpProfile = parsed;
-      return res.json(parsed);
+      const text = await generateWithGemini(prompt);
+      if (text) {
+        const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+        state.icpProfile = parsed;
+        return res.json(parsed);
+      }
     } catch (err) {
       console.warn('[Gemini AI] Falling back to heuristic extractor:', err.message);
     }
@@ -459,7 +474,6 @@ app.post('/api/campaigns', async (req, res) => {
 
   if (genAI && customTone) {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const prompt = `Write a high-converting 2-step B2B cold email sequence.
 Target Persona: ${targetCriteria?.jobTitle || 'VP of Sales'} in ${targetCriteria?.industry || 'B2B SaaS'}.
 Value Proposition: ${state.icpProfile.valueProposition}.
@@ -470,10 +484,11 @@ Return ONLY valid JSON:
   { "stepNumber": 1, "delayDays": 0, "subject": "string", "body": "string" },
   { "stepNumber": 2, "delayDays": 3, "subject": "string", "body": "string" }
 ]`;
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      sequence = JSON.parse(cleaned);
+      const text = await generateWithGemini(prompt);
+      if (text) {
+        const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        sequence = JSON.parse(cleaned);
+      }
     } catch (e) {
       console.warn('[Gemini AI] Sequence generation fallback:', e.message);
     }
