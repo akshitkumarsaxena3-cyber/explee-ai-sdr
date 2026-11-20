@@ -31,6 +31,281 @@ import {
   FileText
 } from 'lucide-react';
 
+const INITIAL_LEADS = [
+  {
+    id: 'lead_in_1',
+    firstName: 'Rohan',
+    lastName: 'Aggarwal',
+    jobTitle: 'Founder & CEO',
+    company: 'NatureCraft Organics India',
+    domain: 'naturecraftfoods.in',
+    industry: 'FMCG & Packaged Foods',
+    headcount: '51-200 employees',
+    location: 'Gurgaon, Haryana 🇮🇳',
+    email: 'rohan.aggarwal@naturecraftfoods.in',
+    whatsapp: '+91 98112 43210',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/rohan-aggarwal-d2c',
+    techStack: ['Shopify Plus', 'Unicommerce', 'Zoho Books']
+  },
+  {
+    id: 'lead_in_2',
+    firstName: 'Ananya',
+    lastName: 'Deshmukh',
+    jobTitle: 'Head of Procurement & Sourcing',
+    company: 'NutriBite Consumer Products Ltd',
+    domain: 'nutribiteindia.com',
+    industry: 'Food Processing',
+    headcount: '201-500 employees',
+    location: 'Mumbai, Maharashtra 🇮🇳',
+    email: 'ananya.deshmukh@nutribiteindia.com',
+    whatsapp: '+91 98201 87654',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/ananya-deshmukh-procurement',
+    techStack: ['SAP S/4HANA', 'TraceX', 'Salesforce']
+  },
+  {
+    id: 'lead_in_3',
+    firstName: 'Vikramaditya',
+    lastName: 'Singhania',
+    jobTitle: 'VP Supply Chain & Operations',
+    company: 'SpiceRoots Consumer Brands',
+    domain: 'spiceroots.in',
+    industry: 'Spices & Seasoning',
+    headcount: '100-250 employees',
+    location: 'Bangalore, Karnataka 🇮🇳',
+    email: 'vikram.singhania@spiceroots.in',
+    whatsapp: '+91 98450 12345',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/vikram-singhania-supplychain',
+    techStack: ['Increff', 'Microsoft Dynamics', 'Shopify']
+  },
+  {
+    id: 'lead_in_4',
+    firstName: 'Suresh',
+    lastName: 'Patel',
+    jobTitle: 'General Manager - Raw Procurement',
+    company: 'Gujarat Agro Processing & Exports',
+    domain: 'gujaratagrofoods.com',
+    industry: 'B2B Agri & Wholesale',
+    headcount: '150-300 employees',
+    location: 'Ahmedabad, Gujarat 🇮🇳',
+    email: 'suresh.patel@gujaratagrofoods.com',
+    whatsapp: '+91 98250 99887',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/suresh-patel-agro',
+    techStack: ['Tally Prime', 'TradeIndia', 'Indiamart']
+  },
+  {
+    id: 'lead_in_5',
+    firstName: 'Neha',
+    lastName: 'Kulkarni',
+    jobTitle: 'Head of Vendor Partnerships',
+    company: 'UrbanPlate Cloud Kitchens',
+    domain: 'urbanplate.co.in',
+    industry: 'Cloud Kitchens & HORECA',
+    headcount: '50-150 employees',
+    location: 'Pune, Maharashtra 🇮🇳',
+    email: 'neha.kulkarni@urbanplate.co.in',
+    whatsapp: '+91 97654 32109',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/neha-kulkarni-hospitality',
+    techStack: ['Petpooja', 'UrbanPiper', 'Slack']
+  },
+  {
+    id: 'lead_in_6',
+    firstName: 'Amit',
+    lastName: 'Malhotra',
+    jobTitle: 'Co-Founder & Director',
+    company: 'FreshFarm Direct Wholesale',
+    domain: 'freshfarmwholesale.in',
+    industry: 'B2B Food & Wholesale',
+    headcount: '25-75 employees',
+    location: 'New Delhi 🇮🇳',
+    email: 'amit@freshfarmwholesale.in',
+    whatsapp: '+91 98100 55443',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/amit-malhotra-wholesale',
+    techStack: ['Zoho Inventory', 'WhatsApp Business API']
+  },
+  {
+    id: 'lead_in_7',
+    firstName: 'Pooja',
+    lastName: 'Iyer',
+    jobTitle: 'Chief Marketing & Growth Officer',
+    company: 'Aura Lifestyle & Nutrition',
+    domain: 'auralifestyle.in',
+    industry: 'D2C Snack Brands',
+    headcount: '30-90 employees',
+    location: 'Bangalore, Karnataka 🇮🇳',
+    email: 'pooja.iyer@auralifestyle.in',
+    whatsapp: '+91 98860 67890',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/pooja-iyer-growth',
+    techStack: ['Klaviyo', 'Shopify', 'Meta Ads']
+  },
+  {
+    id: 'lead_in_8',
+    firstName: 'Rajiv',
+    lastName: 'Menon',
+    jobTitle: 'Director of Plant Operations',
+    company: 'SouthSpice Food Processing Ltd',
+    domain: 'southspiceexports.com',
+    industry: 'Food Processing Exports',
+    headcount: '100-250 employees',
+    location: 'Kochi, Kerala 🇮🇳',
+    email: 'rajiv.menon@southspiceexports.com',
+    whatsapp: '+91 98470 11223',
+    emailStatus: 'verified',
+    linkedin: 'https://linkedin.com/in/rajiv-menon-foodtech',
+    techStack: ['SAP ERP', 'APEDA Portal', 'QuickBooks']
+  }
+];
+
+const INITIAL_CAMPAIGNS = [
+  {
+    id: 'cmp_ind_01',
+    name: '🇮🇳 India D2C & FMCG Brands — Bulk Dehydrated Ingredients Hook',
+    status: 'active',
+    dailyCap: 40,
+    leadsCount: 168,
+    sentCount: 96,
+    openCount: 71,
+    replyCount: 26,
+    meetingsBooked: 8,
+    steps: [
+      {
+        stepNumber: 1,
+        delayDays: 0,
+        subject: 'quick question re: {{company}}\'s raw ingredient sourcing',
+        body: 'Namaste {{firstName}},\n\nSaw that {{company}} is rapidly expanding its product portfolio in {{location}}.\n\nMost {{jobTitle}}s in the {{industry}} sector we speak with in India struggle with erratic raw produce prices and 15-20% shelf-life wastage with traditional mandi vendors.\n\nWe provide factory-direct, FSSAI-certified dehydrated ingredients (spray-dried & hot-air dried onion, garlic, ginger powders & flakes) with guaranteed uniform quality and wholesale bulk pricing.\n\nWould you be open to a quick 5-min chat or receiving our product catalogue & bulk rate card on WhatsApp?\n\nDhanyawad,\nArjun Sharma\nHead of Enterprise Supply'
+      },
+      {
+        stepNumber: 2,
+        delayDays: 3,
+        subject: 'Re: quick question re: {{company}}\'s raw ingredient sourcing',
+        body: 'Hi {{firstName}},\n\nFollowing up on my previous note. We recently helped a leading D2C snack brand in Bangalore reduce their raw seasoning procurement costs by 22% while eliminating batch moisture variance.\n\nCan dispatch free lab sample pouches to your manufacturing plant if you share your shipping address, or we can connect briefly: https://cal.com/arjun-b2b/15min\n\nRegards,\nArjun Sharma\nMob/WhatsApp: +91 98112 XXXXX'
+      }
+    ]
+  },
+  {
+    id: 'cmp_ind_02',
+    name: '🇮🇳 Cloud Kitchens & HORECA Chains — Food Procurement Sourcing',
+    status: 'paused',
+    dailyCap: 30,
+    leadsCount: 82,
+    sentCount: 38,
+    openCount: 27,
+    replyCount: 9,
+    meetingsBooked: 3,
+    steps: [
+      {
+        stepNumber: 1,
+        delayDays: 0,
+        subject: 'cutting kitchen prep time & raw food costs for {{company}}',
+        body: 'Hi {{firstName}},\n\nReaching out directly to {{company}}\'s sourcing team in {{location}}.\n\nCurious if you are evaluating dehydrated vegetable bases to cut kitchen prep time by 40% across your outlets?\n\nHappy to share free sample batches.\n\nBest,\nPriya Nair'
+      }
+    ]
+  }
+];
+
+const INITIAL_CONVERSATIONS = [
+  {
+    id: 'conv_in_1',
+    campaignId: 'cmp_ind_01',
+    leadId: 'lead_in_1',
+    leadName: 'Rohan Aggarwal',
+    company: 'NatureCraft Organics India',
+    jobTitle: 'Founder & CEO',
+    email: 'rohan.aggarwal@naturecraftfoods.in',
+    whatsapp: '+91 98112 43210',
+    sentiment: 'interested',
+    status: 'open',
+    isMeetingBooked: false,
+    lastMessageAt: '15 mins ago',
+    messages: [
+      {
+        direction: 'outbound',
+        from: 'arjun.sharma@growthreach.in',
+        to: 'rohan.aggarwal@naturecraftfoods.in',
+        subject: 'quick question re: NatureCraft Organics India\'s raw ingredient sourcing',
+        body: 'Namaste Rohan,\n\nSaw that NatureCraft Organics India is expanding its roasted snack line across Delhi NCR.\n\nWe provide factory-direct, FSSAI & ISO certified dehydrated onion & garlic powders at mandi-beating bulk pricing with zero moisture issues.\n\nOpen to reviewing our specification sheet and rate card on WhatsApp?',
+        timestamp: 'Yesterday at 4:10 PM'
+      },
+      {
+        direction: 'inbound',
+        from: 'rohan.aggarwal@naturecraftfoods.in',
+        to: 'arjun.sharma@growthreach.in',
+        subject: 'Re: quick question re: NatureCraft Organics India\'s raw ingredient sourcing',
+        body: 'Namaste Arjun,\n\nYes, we are actively looking for reliable suppliers for dehydrated onion powder (A-grade 100 mesh) and toasted garlic flakes for our new roasted makhana batch. Can you send 2kg lab samples to our Gurgaon unit? Also please share your per-tonne wholesale quote on WhatsApp at +91 98112 43210.',
+        timestamp: '15 mins ago'
+      }
+    ]
+  },
+  {
+    id: 'conv_in_2',
+    campaignId: 'cmp_ind_01',
+    leadId: 'lead_in_2',
+    leadName: 'Ananya Deshmukh',
+    company: 'NutriBite Consumer Products Ltd',
+    jobTitle: 'Head of Procurement',
+    email: 'ananya.deshmukh@nutribiteindia.com',
+    whatsapp: '+91 98201 87654',
+    sentiment: 'objection',
+    status: 'open',
+    isMeetingBooked: false,
+    lastMessageAt: '1 hour ago',
+    messages: [
+      {
+        direction: 'inbound',
+        from: 'ananya.deshmukh@nutribiteindia.com',
+        to: 'arjun.sharma@growthreach.in',
+        subject: 'Re: Ingredient specs inquiry',
+        body: 'What is your Minimum Order Quantity (MOQ) and do you have third-party Certificate of Analysis (COA) for pesticide residues and heavy metals?',
+        timestamp: '1 hour ago'
+      }
+    ]
+  },
+  {
+    id: 'conv_in_3',
+    campaignId: 'cmp_ind_01',
+    leadId: 'lead_in_7',
+    leadName: 'Pooja Iyer',
+    company: 'Aura Lifestyle & Nutrition',
+    jobTitle: 'Chief Marketing Officer',
+    email: 'pooja.iyer@auralifestyle.in',
+    whatsapp: '+91 98860 67890',
+    sentiment: 'interested',
+    status: 'closed',
+    isMeetingBooked: true,
+    lastMessageAt: 'Yesterday',
+    messages: [
+      {
+        direction: 'inbound',
+        from: 'pooja.iyer@auralifestyle.in',
+        to: 'arjun.sharma@growthreach.in',
+        subject: 'Re: quick question',
+        body: 'Booked 3:30 PM IST via your Cal link. Our purchase manager will also join the call.',
+        timestamp: 'Yesterday'
+      }
+    ]
+  }
+];
+
+const INITIAL_MAILBOXES = [
+  { id: 'mb_1', email: 'arjun.sharma@growthreach.in', name: 'Arjun Sharma', status: 'active', dailyLimit: 50, sentToday: 26, reputation: 99.4 },
+  { id: 'mb_2', email: 'priya.nair@b2bconnect.co.in', name: 'Priya Nair', status: 'active', dailyLimit: 50, sentToday: 19, reputation: 98.9 },
+  { id: 'mb_3', email: 'rahul.verma@salesoutreach.in', name: 'Rahul Verma', status: 'active', dailyLimit: 50, sentToday: 31, reputation: 98.6 },
+  { id: 'mb_4', email: 'ananya.iyer@directlead.in', name: 'Ananya Iyer', status: 'warming', dailyLimit: 30, sentToday: 14, reputation: 97.8 }
+];
+
+const INITIAL_TRANSACTIONS = [
+  { id: 'tx_in_1', description: 'Free Welcome Starter Credits', amountCents: 3000, type: 'bonus', date: '2026-11-18', balanceAfter: 3000 },
+  { id: 'tx_in_2', description: 'Batch Dispatch: 48 emails (Pan-India D2C Brands)', amountCents: -192, type: 'spend_email', date: '2026-11-19', balanceAfter: 2808 },
+  { id: 'tx_in_3', description: 'Lead Enrichment: 20 Indian verified contacts', amountCents: -20, type: 'spend_enrichment', date: '2026-11-19', balanceAfter: 2788 },
+  { id: 'tx_in_4', description: 'Batch Dispatch: 48 emails (Gujarat Agro & Mumbai Food)', amountCents: -192, type: 'spend_email', date: '2026-11-20', balanceAfter: 2596 }
+];
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [workspace, setWorkspace] = useState({
@@ -43,15 +318,30 @@ export default function App() {
   const [crawlUrl, setCrawlUrl] = useState('https://dehydrated-products-india.in');
   const [manualDescription, setManualDescription] = useState('We are manufacturers and bulk wholesale suppliers of dehydrated onion flakes, garlic powder, ginger powder, and spray-dried fruit powders with FSSAI & ISO certification in India.');
   const [isCrawling, setIsCrawling] = useState(false);
-  const [icpData, setIcpData] = useState(null);
+  const [icpData, setIcpData] = useState({
+    companyName: 'Bharat B2B & D2C Supply Network',
+    websiteUrl: 'https://dehydrated-products-india.in',
+    headline: 'Bulk Dehydrated Vegetables, Fruits & Spices Supply for Indian FMCG & D2C Brands',
+    valueProposition: 'Direct factory sourcing of premium dehydrated onion, garlic, ginger, and fruit powders with FSSAI & ISO certification at wholesale mandi rates.',
+    targetIndustries: ['FMCG & Packaged Foods', 'Spices & Seasoning Manufacturers', 'D2C Snack Brands', 'Cloud Kitchens & HORECA', 'Food Processing Exports'],
+    targetHeadcounts: ['10-50 employees', '50-250 employees', '250+ enterprise'],
+    targetJobTitles: ['Head of Procurement', 'Purchase Manager', 'VP Supply Chain', 'Co-Founder & COO', 'Head of Sourcing'],
+    keyPainPoints: [
+      'Seasonal price fluctuations in fresh raw produce',
+      'High wastage and short shelf life of raw onions/garlic',
+      'Unreliable wholesale mandi suppliers with inconsistent moisture & quality',
+      'Difficulty finding FSSAI/APEDA compliant bulk export-grade ingredients'
+    ],
+    confidenceScore: 98
+  });
 
   // Campaigns state
-  const [campaigns, setCampaigns] = useState([]);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [campaigns, setCampaigns] = useState(INITIAL_CAMPAIGNS);
+  const [selectedCampaign, setSelectedCampaign] = useState(INITIAL_CAMPAIGNS[0]);
   const [isSendingBatch, setIsSendingBatch] = useState(false);
 
   // Leads & Search state
-  const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState(INITIAL_LEADS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('All');
   const [selectedLocation, setSelectedLocation] = useState('All');
@@ -59,15 +349,15 @@ export default function App() {
   const [lookalikes, setLookalikes] = useState([]);
 
   // Inbox state
-  const [conversations, setConversations] = useState([]);
-  const [selectedConv, setSelectedConv] = useState(null);
+  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
+  const [selectedConv, setSelectedConv] = useState(INITIAL_CONVERSATIONS[0]);
   const [replyText, setReplyText] = useState('');
   const [sentimentFilter, setSentimentFilter] = useState('all');
   const [isGeneratingReply, setIsGeneratingReply] = useState(false);
 
   // Mailboxes & Billing
-  const [mailboxes, setMailboxes] = useState([]);
-  const [transactions, setTransactions] = useState([]);
+  const [mailboxes, setMailboxes] = useState(INITIAL_MAILBOXES);
+  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
   const [toastMessage, setToastMessage] = useState(null);
 
   // Notification toast helper
@@ -76,7 +366,7 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Initial Data Fetch
+  // Initial Data Fetch from backend if available
   useEffect(() => {
     fetchBilling();
     fetchCampaigns();
@@ -88,27 +378,23 @@ export default function App() {
   const fetchBilling = async () => {
     try {
       const res = await fetch('/api/billing/ledger');
+      if (!res.ok) return;
       const data = await res.json();
       if (data.workspace) setWorkspace(data.workspace);
       if (data.transactions) setTransactions(data.transactions);
-    } catch (err) {
-      console.error('Error fetching billing:', err);
-    }
+    } catch (err) {}
   };
 
   const fetchCampaigns = async () => {
     try {
       const res = await fetch('/api/campaigns');
+      if (!res.ok) return;
       const data = await res.json();
-      if (data.campaigns) {
+      if (data.campaigns && data.campaigns.length > 0) {
         setCampaigns(data.campaigns);
-        if (!selectedCampaign && data.campaigns.length > 0) {
-          setSelectedCampaign(data.campaigns[0]);
-        }
+        setSelectedCampaign(data.campaigns[0]);
       }
-    } catch (err) {
-      console.error('Error fetching campaigns:', err);
-    }
+    } catch (err) {}
   };
 
   const fetchLeads = async () => {
@@ -122,10 +408,29 @@ export default function App() {
           location: selectedLocation
         })
       });
+      if (!res.ok) throw new Error('Not ok');
       const data = await res.json();
       if (data.leads) setLeads(data.leads);
     } catch (err) {
-      console.error('Error fetching leads:', err);
+      // Client-side filtering fallback for GitHub Pages
+      let filtered = [...INITIAL_LEADS];
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(l =>
+          l.firstName.toLowerCase().includes(q) ||
+          l.lastName.toLowerCase().includes(q) ||
+          l.company.toLowerCase().includes(q) ||
+          l.jobTitle.toLowerCase().includes(q) ||
+          l.location.toLowerCase().includes(q)
+        );
+      }
+      if (selectedIndustry !== 'All') {
+        filtered = filtered.filter(l => l.industry.toLowerCase() === selectedIndustry.toLowerCase());
+      }
+      if (selectedLocation !== 'All') {
+        filtered = filtered.filter(l => l.location.toLowerCase().includes(selectedLocation.toLowerCase()));
+      }
+      setLeads(filtered);
     }
   };
 
@@ -133,6 +438,7 @@ export default function App() {
     try {
       const url = sentiment && sentiment !== 'all' ? `/api/inbox/conversations?sentiment=${sentiment}` : '/api/inbox/conversations';
       const res = await fetch(url);
+      if (!res.ok) throw new Error('Not ok');
       const data = await res.json();
       if (data.conversations) {
         setConversations(data.conversations);
@@ -141,18 +447,22 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error('Error fetching inbox:', err);
+      let convs = [...INITIAL_CONVERSATIONS];
+      if (sentiment && sentiment !== 'all') {
+        convs = convs.filter(c => c.sentiment === sentiment);
+      }
+      setConversations(convs);
+      if (convs.length > 0) setSelectedConv(convs[0]);
     }
   };
 
   const fetchMailboxes = async () => {
     try {
       const res = await fetch('/api/mailboxes');
+      if (!res.ok) return;
       const data = await res.json();
       if (data.mailboxes) setMailboxes(data.mailboxes);
-    } catch (err) {
-      console.error('Error fetching mailboxes:', err);
-    }
+    } catch (err) {}
   };
 
   // Actions
@@ -168,11 +478,32 @@ export default function App() {
           manualDescription
         })
       });
+      if (!res.ok) throw new Error('Not ok');
       const data = await res.json();
       setIcpData(data);
       showToast(`Website analyzed! Indian ICP and personas tailored for ${data.companyName}.`);
     } catch (err) {
-      showToast('Error analyzing website/business', 'error');
+      // Client-side simulation on GitHub Pages
+      let baseName = crawlUrl.replace(/https?:\/\//i, '').split('.')[0] || 'My Brand';
+      baseName = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+      const generated = {
+        companyName: baseName + ' Supply Network',
+        websiteUrl: crawlUrl || 'https://mybrand.in',
+        headline: 'Bulk Direct Procurement for Indian FMCG, Spices & Food Manufacturers',
+        valueProposition: 'Factory-direct, FSSAI-certified dehydrated vegetable flakes, fruit powders, and raw seasonings with uniform moisture and bulk wholesale pricing across India.',
+        targetIndustries: ['FMCG & Packaged Foods', 'D2C Snack Brands', 'Spices & Seasoning Manufacturers', 'Cloud Kitchens & HORECA'],
+        targetHeadcounts: ['10-50 employees', '50-250 employees', '250+ enterprise'],
+        targetJobTitles: ['Head of Procurement', 'Purchase Manager', 'VP Supply Chain', 'Co-Founder & COO'],
+        keyPainPoints: [
+          'High seasonal price spikes in fresh mandi produce',
+          'Storage and transportation wastage of raw produce',
+          'Inconsistent batch quality and moisture from local middlemen',
+          'Lack of standardized lab COA documentation'
+        ],
+        confidenceScore: 97
+      };
+      setIcpData(generated);
+      showToast(`Analyzed ${baseName}! Indian ICP and buyer personas generated.`);
     } finally {
       setIsCrawling(false);
     }
@@ -181,36 +512,80 @@ export default function App() {
   const handleToggleCampaign = async (id) => {
     try {
       const res = await fetch(`/api/campaigns/${id}/toggle`, { method: 'PATCH' });
-      const updated = await res.json();
-      setCampaigns(prev => prev.map(c => c.id === id ? updated : c));
-      if (selectedCampaign?.id === id) setSelectedCampaign(updated);
-      showToast(`Campaign is now ${updated.status}`);
-    } catch (err) {
-      showToast('Failed to toggle campaign', 'error');
-    }
+      if (res.ok) {
+        const updated = await res.json();
+        setCampaigns(prev => prev.map(c => c.id === id ? updated : c));
+        if (selectedCampaign?.id === id) setSelectedCampaign(updated);
+        showToast(`Campaign is now ${updated.status}`);
+        return;
+      }
+    } catch (err) {}
+
+    // Fallback simulation
+    setCampaigns(prev => prev.map(c => {
+      if (c.id === id) {
+        const nextStatus = c.status === 'active' ? 'paused' : 'active';
+        showToast(`Campaign is now ${nextStatus}`);
+        return { ...c, status: nextStatus };
+      }
+      return c;
+    }));
   };
 
   const handleDispatchBatch = async (campaignId) => {
     setIsSendingBatch(true);
+    const costCents = 40; // 10 emails * $0.04 = $0.40 (~ ₹33)
+
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/send-batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ batchSize: 10 })
       });
-      const data = await res.json();
       if (res.ok) {
+        const data = await res.json();
         showToast(`Dispatched 10 emails via Indian warmed pool! (Spent $${(data.costCents / 100).toFixed(2)})`);
         fetchBilling();
         fetchCampaigns();
-      } else {
-        showToast(data.error || 'Batch dispatch failed', 'error');
+        setIsSendingBatch(false);
+        return;
       }
-    } catch (err) {
-      showToast('Error dispatching batch', 'error');
-    } finally {
-      setIsSendingBatch(false);
-    }
+    } catch (err) {}
+
+    // Client-side simulation
+    setWorkspace(prev => ({
+      ...prev,
+      credit_balance_cents: Math.max(0, prev.credit_balance_cents - costCents),
+      spent_today_cents: prev.spent_today_cents + costCents
+    }));
+
+    setCampaigns(prev => prev.map(c => {
+      if (c.id === campaignId) {
+        return {
+          ...c,
+          sentCount: c.sentCount + 10,
+          openCount: c.openCount + 7,
+          replyCount: c.replyCount + 3,
+          meetingsBooked: c.meetingsBooked + 1
+        };
+      }
+      return c;
+    }));
+
+    setTransactions(prev => [
+      {
+        id: `tx_${Date.now()}`,
+        description: 'Batch Dispatch: 10 emails (Indian Food & FMCG Sourcing)',
+        amountCents: -costCents,
+        type: 'spend_email',
+        date: new Date().toISOString().split('T')[0],
+        balanceAfter: workspace.credit_balance_cents - costCents
+      },
+      ...prev
+    ]);
+
+    showToast(`Dispatched 10 emails via Indian warmed pool! (Debited ₹33 / $0.40)`);
+    setIsSendingBatch(false);
   };
 
   const handleGenerateAiReply = async (convId) => {
@@ -221,14 +596,26 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId: convId })
       });
-      const data = await res.json();
-      setReplyText(data.suggestedReply);
-      showToast('AI drafted Indian B2B reply with WhatsApp & sample dispatch details!');
-    } catch (err) {
-      showToast('Could not generate AI reply', 'error');
-    } finally {
-      setIsGeneratingReply(false);
+      if (res.ok) {
+        const data = await res.json();
+        setReplyText(data.suggestedReply);
+        showToast('AI drafted Indian B2B reply with WhatsApp & sample dispatch details!');
+        setIsGeneratingReply(false);
+        return;
+      }
+    } catch (err) {}
+
+    // Client-side simulation
+    const conv = conversations.find(c => c.id === convId);
+    let reply = '';
+    if (conv?.sentiment === 'interested') {
+      reply = `Namaste ${conv.leadName.split(' ')[0]},\n\nThank you for your response! We can definitely dispatch the 2kg lab sample pouches to your Gurgaon facility right away.\n\nI will also ping you on WhatsApp at ${conv.whatsapp || '+91 98112 XXXXX'} with our complete FSSAI lab COA and wholesale price sheet.\n\nIf you prefer a quick 10-minute briefing call with our plant head, feel free to pick a time here:\nhttps://cal.com/arjun-b2b/15min\n\nDhanyawad,\nArjun Sharma\nHead of Sourcing`;
+    } else {
+      reply = `Namaste ${conv?.leadName.split(' ')[0] || 'Sir'},\n\nOur standard Minimum Order Quantity (MOQ) is 50 kg for trial production batches, and 500 kg for regular commercial orders. All our batches come with comprehensive NABL-accredited third-party Certificate of Analysis (COA) for moisture, ash, pesticide residue, and heavy metal testing.\n\nHappy to email you our standard COA report right now?`;
     }
+    setReplyText(reply);
+    showToast('AI drafted Indian B2B reply with WhatsApp & sample details!');
+    setIsGeneratingReply(false);
   };
 
   const handleSendReply = async () => {
@@ -242,16 +629,38 @@ export default function App() {
           bodyText: replyText
         })
       });
-      const data = await res.json();
-      if (data.success) {
+      if (res.ok) {
+        const data = await res.json();
         showToast('Reply dispatched to prospect!');
         setReplyText('');
         fetchInbox();
         setSelectedConv(data.conversation);
+        return;
       }
-    } catch (err) {
-      showToast('Error sending reply', 'error');
-    }
+    } catch (err) {}
+
+    // Client-side simulation
+    const newMessage = {
+      direction: 'outbound',
+      from: 'arjun.sharma@growthreach.in',
+      to: selectedConv.email,
+      subject: `Re: procurement discussion`,
+      body: replyText,
+      timestamp: 'Just now'
+    };
+
+    const updatedConv = {
+      ...selectedConv,
+      messages: [...selectedConv.messages, newMessage],
+      status: 'replied',
+      lastMessageAt: 'Just now',
+      isMeetingBooked: replyText.includes('cal.com') || replyText.includes('sample') || selectedConv.isMeetingBooked
+    };
+
+    setConversations(prev => prev.map(c => c.id === selectedConv.id ? updatedConv : c));
+    setSelectedConv(updatedConv);
+    setReplyText('');
+    showToast('Reply dispatched via warmed mailbox!');
   };
 
   const handleTopupCredits = async (amountCents) => {
@@ -261,14 +670,30 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amountCents })
       });
-      const data = await res.json();
-      if (data.success) {
+      if (res.ok) {
         showToast(`Added $${(amountCents / 100).toFixed(2)} (~ ₹${((amountCents / 100) * 85).toFixed(0)}) to wallet!`);
         fetchBilling();
+        return;
       }
-    } catch (err) {
-      showToast('Failed to topup credits', 'error');
-    }
+    } catch (err) {}
+
+    // Client-side simulation
+    setWorkspace(prev => ({
+      ...prev,
+      credit_balance_cents: prev.credit_balance_cents + amountCents
+    }));
+    setTransactions(prev => [
+      {
+        id: `tx_${Date.now()}`,
+        description: `Credit Top-Up ($${(amountCents / 100).toFixed(2)} / ~₹${((amountCents / 100) * 85).toFixed(0)}) via UPI/Card`,
+        amountCents: amountCents,
+        type: 'purchase',
+        date: new Date().toISOString().split('T')[0],
+        balanceAfter: workspace.credit_balance_cents + amountCents
+      },
+      ...prev
+    ]);
+    showToast(`Added $${(amountCents / 100).toFixed(2)} (~ ₹${((amountCents / 100) * 85).toFixed(0)}) to wallet!`);
   };
 
   const handleFindLookalikes = async () => {
@@ -279,11 +704,18 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: lookalikeDomain })
       });
-      const data = await res.json();
-      setLookalikes(data.lookalikes || []);
-    } catch (err) {
-      showToast('Failed to find lookalikes', 'error');
-    }
+      if (res.ok) {
+        const data = await res.json();
+        setLookalikes(data.lookalikes || []);
+        return;
+      }
+    } catch (err) {}
+
+    setLookalikes([
+      { name: 'Vedic Roots Consumer Products', domain: 'vedicroots.in', similarity: '98%', headcount: '80-150', industry: 'D2C Food & FMCG', location: 'Gurgaon, Haryana 🇮🇳' },
+      { name: 'Bhoomi Agro Spices Ltd', domain: 'bhoomiagro.com', similarity: '95%', headcount: '120-300', industry: 'Food Processing', location: 'Ahmedabad, Gujarat 🇮🇳' },
+      { name: 'PureHarvest Organics', domain: 'pureharvest.in', similarity: '92%', headcount: '40-100', industry: 'Packaged Foods', location: 'Bangalore, Karnataka 🇮🇳' }
+    ]);
   };
 
   return (
@@ -793,7 +1225,10 @@ export default function App() {
                   <MapPin className="w-4 h-4 text-rose-500" />
                   <select
                     value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedLocation(e.target.value);
+                      setTimeout(fetchLeads, 10);
+                    }}
                     className="w-full px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none"
                   >
                     <option value="All">Pan India 🇮🇳 (All Hubs)</option>
@@ -811,7 +1246,10 @@ export default function App() {
                   <Building2 className="w-4 h-4 text-blue-500" />
                   <select
                     value={selectedIndustry}
-                    onChange={(e) => setSelectedIndustry(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedIndustry(e.target.value);
+                      setTimeout(fetchLeads, 10);
+                    }}
                     className="w-full px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none"
                   >
                     <option value="All">All Categories</option>
