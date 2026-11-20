@@ -1,0 +1,29 @@
+feature,area,priority,original,clone,notes
+Website URL analysis to extract ICP and value proposition,onboarding,must,yes,no,LLM crawls domain metadata and suggests target personas
+Google and Email magic link sign up,onboarding,must,yes,no,Frictionless auth flow
+Guided first campaign wizard (product URL to draft campaign),onboarding,must,yes,no,Time-to-first-value under 3 minutes
+B2B semantic company search by natural language,data & search,must,yes,no,Search companies by description and plain English criteria
+Decision-maker filter by job title and seniorities,data & search,must,yes,no,Filter targets by VP/Director/C-Suite/Founder
+Company firmographic filters (headcount location industry),data & search,must,yes,no,Standard B2B segmentation criteria
+Real-time email address validation,data & search,must,yes,no,Verify syntax and deliverability before sending (<3% bounce goal)
+Lookalike company generation from seed domain,data & search,should,yes,no,AI finds similar companies based on embeddings/firmographics
+Export search results to CSV,data & search,could,yes,no,Self-serve lead extraction
+AI-generated personalized cold email copy,campaigns,must,yes,no,Dynamic prompt combining lead background and sender offer
+Multi-step email follow-up sequence,campaigns,must,yes,no,Automated step triggers based on delays (e.g. 3-day follow-up)
+Variable personalization tokens (First Name Company Pain Point),campaigns,must,yes,no,Template variable replacement
+Campaign review and manual approval mode,campaigns,should,yes,no,Allows users to preview and edit copy before launching
+Daily sending volume and pacing controls,campaigns,must,yes,no,Throttle sending to prevent spam detection
+Pre-warmed sender inbox pool management,infrastructure,must,yes,no,Pool of authenticated inboxes (SPF/DKIM/DMARC) without user setup
+Custom domain connection (BYO Mailbox / SMTP),infrastructure,should,yes,no,Allow advanced users to send via their own Google Workspace/Microsoft 365
+Bounce tracking and automatic lead suppression,infrastructure,must,yes,no,Hard bounce detection to protect mailbox reputation
+Unified multi-inbox reply view,inbox,must,yes,no,Single stream of incoming prospect responses
+AI reply sentiment tagging (Interested Objection OOO Unsubscribe),inbox,must,yes,no,Automatic classification of email sentiment
+Autonomous reply answering and meeting link delivery,inbox,should,yes,no,AI drafts or auto-sends scheduling link when interest is shown
+Manual email reply composer,inbox,must,yes,no,Take over conversation manually directly inside dashboard
+Pay-as-you-go credit billing system,billing,must,yes,no,Consumption billing per email sent (~$0.04) and record enriched
+Daily budget caps and spend limits,billing,must,yes,no,Prevent runaway spending with hard daily limits
+Stripe checkout credit top-up and auto-recharge,billing,must,yes,no,Self-serve credit purchasing
+Aggregate campaign analytics (sent opened replied hot leads),analytics,must,yes,no,Core conversion funnel metrics
+Webhook / Zapier integration for new leads and replies,integrations,should,yes,no,Push leads to CRM or Slack
+Proprietary 105M company data lake,data & search,could,yes,skip,Third-party provider APIs (Apollo/Crustdata/People Data Labs) substitute
+Proprietary managed private IP server farm,infrastructure,could,yes,skip,Managed SMTP/Instantly/Smartlead API substitute
