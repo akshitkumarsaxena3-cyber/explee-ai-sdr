@@ -1,6 +1,13 @@
-# Explee AI SDR — Autonomous B2B Outbound & Lead Engine
+# Explee AI SDR — Autonomous B2B Outbound & Lead Engine (Indian Market Edition 🇮🇳)
 
-A clean-room production replica of **Explee** (`explee.com`, formerly AutoGTM). An autonomous AI sales development representative that converts website URLs into ideal customer profiles (ICPs), sources verified decision-makers, writes hyper-personalized cold outreach sequences, delivers through pre-warmed inboxes, and books meetings directly into your calendar.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-emerald?style=for-the-badge&logo=github)](https://akshitkumarsaxena3-cyber.github.io/explee-ai-sdr/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/akshitkumarsaxena3-cyber/explee-ai-sdr)
+
+🌐 **Live Web Application:** [https://akshitkumarsaxena3-cyber.github.io/explee-ai-sdr/](https://akshitkumarsaxena3-cyber.github.io/explee-ai-sdr/)
+
+---
+
+A clean-room production replica of **Explee** (`explee.com`, formerly AutoGTM), customized for the Indian B2B market (Delhi-NCR, Mumbai, Bangalore, Gujarat). An autonomous AI sales development representative that converts website URLs into ideal customer profiles (ICPs), sources verified decision-makers, writes hyper-personalized cold outreach sequences with WhatsApp and sample dispatch options, delivers through pre-warmed inboxes, and books meetings directly into your calendar.
 
 ---
 
