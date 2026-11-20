@@ -23,7 +23,12 @@ import {
   Clock,
   ArrowUpRight,
   Filter,
-  DollarSign
+  DollarSign,
+  Phone,
+  MessageSquare,
+  MapPin,
+  Building2,
+  FileText
 } from 'lucide-react';
 
 export default function App() {
@@ -35,7 +40,8 @@ export default function App() {
   });
 
   // ICP Crawl state
-  const [crawlUrl, setCrawlUrl] = useState('https://scalevector.ai');
+  const [crawlUrl, setCrawlUrl] = useState('https://dehydrated-products-india.in');
+  const [manualDescription, setManualDescription] = useState('We are manufacturers and bulk wholesale suppliers of dehydrated onion flakes, garlic powder, ginger powder, and spray-dried fruit powders with FSSAI & ISO certification in India.');
   const [isCrawling, setIsCrawling] = useState(false);
   const [icpData, setIcpData] = useState(null);
 
@@ -48,6 +54,7 @@ export default function App() {
   const [leads, setLeads] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('All');
+  const [selectedLocation, setSelectedLocation] = useState('All');
   const [lookalikeDomain, setLookalikeDomain] = useState('');
   const [lookalikes, setLookalikes] = useState([]);
 
@@ -109,7 +116,11 @@ export default function App() {
       const res = await fetch('/api/leads/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchQuery, industry: selectedIndustry })
+        body: JSON.stringify({
+          query: searchQuery,
+          industry: selectedIndustry,
+          location: selectedLocation
+        })
       });
       const data = await res.json();
       if (data.leads) setLeads(data.leads);
@@ -146,19 +157,22 @@ export default function App() {
 
   // Actions
   const handleAnalyzeDomain = async () => {
-    if (!crawlUrl) return;
+    if (!crawlUrl && !manualDescription) return;
     setIsCrawling(true);
     try {
       const res = await fetch('/api/onboarding/analyze-domain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: crawlUrl })
+        body: JSON.stringify({
+          url: crawlUrl,
+          manualDescription
+        })
       });
       const data = await res.json();
       setIcpData(data);
-      showToast(`Analyzed ${data.companyName}! ICP and personas generated.`);
+      showToast(`Website analyzed! Indian ICP and personas tailored for ${data.companyName}.`);
     } catch (err) {
-      showToast('Error analyzing domain', 'error');
+      showToast('Error analyzing website/business', 'error');
     } finally {
       setIsCrawling(false);
     }
@@ -186,7 +200,7 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(`Dispatched 10 emails! (Spent $${(data.costCents / 100).toFixed(2)})`);
+        showToast(`Dispatched 10 emails via Indian warmed pool! (Spent $${(data.costCents / 100).toFixed(2)})`);
         fetchBilling();
         fetchCampaigns();
       } else {
@@ -209,7 +223,7 @@ export default function App() {
       });
       const data = await res.json();
       setReplyText(data.suggestedReply);
-      showToast('AI drafted contextual reply with calendar booking link!');
+      showToast('AI drafted Indian B2B reply with WhatsApp & sample dispatch details!');
     } catch (err) {
       showToast('Could not generate AI reply', 'error');
     } finally {
@@ -230,7 +244,7 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast('Reply dispatched via warmed mailbox!');
+        showToast('Reply dispatched to prospect!');
         setReplyText('');
         fetchInbox();
         setSelectedConv(data.conversation);
@@ -249,7 +263,7 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Successfully added $${(amountCents / 100).toFixed(2)} to credit wallet!`);
+        showToast(`Added $${(amountCents / 100).toFixed(2)} (~ ₹${((amountCents / 100) * 85).toFixed(0)}) to wallet!`);
         fetchBilling();
       }
     } catch (err) {
@@ -273,176 +287,179 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0b0f17] text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-sm font-medium animate-bounce ${
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium ${
           toastMessage.type === 'error'
-            ? 'bg-rose-950/90 text-rose-200 border-rose-800'
-            : 'bg-emerald-950/90 text-emerald-200 border-emerald-800'
+            ? 'bg-rose-50 text-rose-800 border-rose-200'
+            : 'bg-emerald-50 text-emerald-800 border-emerald-200'
         }`}>
-          {toastMessage.type === 'error' ? <AlertCircle className="w-5 h-5 text-rose-400" /> : <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
+          {toastMessage.type === 'error' ? <AlertCircle className="w-5 h-5 text-rose-600" /> : <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
           <span>{toastMessage.msg}</span>
         </div>
       )}
 
-      {/* Sidebar Navigation */}
-      <aside className="w-64 border-r border-slate-800/80 bg-[#0d131f] flex flex-col justify-between p-4">
+      {/* Sidebar Navigation (Crisp Light Theme) */}
+      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col justify-between p-4 shadow-xs">
         <div>
-          {/* Logo */}
+          {/* Logo & Region Badge */}
           <div className="flex items-center gap-3 px-2 py-3 mb-6">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Zap className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 text-white">
+              <Zap className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg tracking-tight text-white">EXPLEE</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">AI SDR</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-lg tracking-tight text-slate-900">EXPLEE</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">🇮🇳 INDIA</span>
               </div>
-              <p className="text-[11px] text-slate-400">Autonomous Outbound</p>
+              <p className="text-[11px] text-slate-500 font-medium">B2B Outbound SDR</p>
             </div>
           </div>
 
-          {/* Nav Items */}
+          {/* Navigation Links */}
           <nav className="space-y-1">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <TrendingUp className="w-4 h-4" />
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
               <span>Mission Control</span>
             </button>
 
             <button
               onClick={() => setActiveTab('onboarding')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'onboarding'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <Globe className="w-4 h-4" />
-              <span>URL to ICP Wizard</span>
+              <Globe className="w-4 h-4 text-blue-600" />
+              <span>Website to ICP Setup</span>
             </button>
 
             <button
               onClick={() => setActiveTab('leads')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'leads'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <Search className="w-4 h-4" />
-              <span>Lead Intelligence</span>
+              <Search className="w-4 h-4 text-indigo-600" />
+              <span>Indian B2B Leads</span>
             </button>
 
             <button
               onClick={() => setActiveTab('campaigns')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'campaigns'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <Mail className="w-4 h-4" />
+              <Mail className="w-4 h-4 text-amber-600" />
               <span>Campaigns & Sequences</span>
             </button>
 
             <button
               onClick={() => setActiveTab('inbox')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'inbox'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <Inbox className="w-4 h-4" />
-              <span>Unified Reply Inbox</span>
-              <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
+              <Inbox className="w-4 h-4 text-purple-600" />
+              <span>Replies & WhatsApp</span>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">
                 {conversations.filter(c => c.sentiment === 'interested').length} hot
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('mailboxes')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'mailboxes'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <Server className="w-4 h-4" />
-              <span>Warmed Mailbox Pool</span>
+              <Server className="w-4 h-4 text-slate-600" />
+              <span>Warmed Senders</span>
             </button>
 
             <button
               onClick={() => setActiveTab('billing')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 activeTab === 'billing'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
               }`}
             >
-              <CreditCard className="w-4 h-4" />
-              <span>Credits & Billing</span>
+              <CreditCard className="w-4 h-4 text-emerald-600" />
+              <span>Wallet & Billing</span>
             </button>
           </nav>
         </div>
 
-        {/* Credit Balance Card */}
-        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+        {/* Credit Balance Box */}
+        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
             <span>Credit Wallet</span>
-            <span className="text-emerald-400 font-semibold">$0.04/email</span>
+            <span className="text-emerald-700 font-semibold">₹3.30/email</span>
           </div>
-          <div className="text-xl font-bold text-white mb-2">
-            ${(workspace.credit_balance_cents / 100).toFixed(2)}
+          <div className="text-xl font-bold text-slate-900 mb-2">
+            ${(workspace.credit_balance_cents / 100).toFixed(2)}{' '}
+            <span className="text-xs font-medium text-slate-500">
+              (~₹{((workspace.credit_balance_cents / 100) * 85).toFixed(0)})
+            </span>
           </div>
-          <div className="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+          <div className="w-full bg-slate-200 rounded-full h-1.5 mb-3 overflow-hidden">
             <div
-              className="bg-emerald-500 h-1.5 rounded-full"
+              className="bg-emerald-600 h-1.5 rounded-full"
               style={{ width: `${Math.min(100, (workspace.credit_balance_cents / 3000) * 100)}%` }}
             ></div>
           </div>
           <button
             onClick={() => handleTopupCredits(5000)}
-            className="w-full py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-700/20"
+            className="w-full py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm"
           >
             <DollarSign className="w-3.5 h-3.5" />
-            <span>+ $50 Top-up</span>
+            <span>+ ₹4,250 Top-up ($50)</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden bg-slate-50">
         {/* Top Header */}
-        <header className="h-16 border-b border-slate-800/80 bg-[#0d131f]/60 backdrop-blur-md flex items-center justify-between px-6">
+        <header className="h-16 border-b border-slate-200 bg-white/95 backdrop-blur-md flex items-center justify-between px-6 shadow-xs">
           <div className="flex items-center gap-4">
-            <h1 className="font-bold text-lg text-white capitalize">
-              {activeTab === 'dashboard' && 'Autonomous Outbound Mission Control'}
-              {activeTab === 'onboarding' && 'Website to Ideal Customer Profile (ICP)'}
-              {activeTab === 'leads' && 'B2B Lead Engine & Lookalike Accounts'}
-              {activeTab === 'campaigns' && 'Campaign Orchestration & AI Sequences'}
-              {activeTab === 'inbox' && 'Unified Multi-Inbox & AI Booking Assistant'}
-              {activeTab === 'mailboxes' && 'Pre-Warmed Mailbox Health & Sender Pool'}
+            <h1 className="font-bold text-lg text-slate-900">
+              {activeTab === 'dashboard' && 'Autonomous Outbound Mission Control (India 🇮🇳)'}
+              {activeTab === 'onboarding' && 'Analyze Your Website & Build Indian B2B ICP'}
+              {activeTab === 'leads' && 'Indian Decision-Maker Leads (Delhi, Mumbai, Bangalore)'}
+              {activeTab === 'campaigns' && 'Campaign Orchestration & Indian Outreach Sequences'}
+              {activeTab === 'inbox' && 'Unified Multi-Inbox, Replies & WhatsApp Connect'}
+              {activeTab === 'mailboxes' && 'Warmed Senders & Deliverability Protection'}
               {activeTab === 'billing' && 'Pay-As-You-Go Credit Ledger'}
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>4 Inboxes Active & Warmed</span>
             </div>
             <button
               onClick={() => setActiveTab('onboarding')}
-              className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5 transition-all"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Launch New Campaign</span>
@@ -457,126 +474,133 @@ export default function App() {
             <div className="space-y-6 max-w-7xl mx-auto">
               {/* KPI Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="p-5 rounded-2xl bg-[#111827]/70 border border-slate-800/80 shadow-sm relative overflow-hidden">
-                  <div className="text-xs font-medium text-slate-400">Total Emails Dispatched</div>
-                  <div className="text-2xl font-black text-white mt-1">136</div>
-                  <div className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                  <div className="text-xs font-medium text-slate-500">Total Emails Dispatched</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">134</div>
+                  <div className="text-xs text-emerald-700 font-semibold mt-2 flex items-center gap-1">
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>+42 today via warmed pool</span>
+                    <span>+48 today to Indian FMCG / D2C</span>
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#111827]/70 border border-slate-800/80 shadow-sm relative overflow-hidden">
-                  <div className="text-xs font-medium text-slate-400">Average Open Rate</div>
-                  <div className="text-2xl font-black text-white mt-1">69.8%</div>
-                  <div className="text-xs text-slate-400 mt-2">
-                    Industry avg: ~28%
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                  <div className="text-xs font-medium text-slate-500">Average Open Rate</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">73.9%</div>
+                  <div className="text-xs text-slate-500 mt-2">
+                    Industry avg in India: ~24%
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#111827]/70 border border-slate-800/80 shadow-sm relative overflow-hidden">
-                  <div className="text-xs font-medium text-slate-400">Response Rate</div>
-                  <div className="text-2xl font-black text-white mt-1">23.5%</div>
-                  <div className="text-xs text-emerald-400 mt-2">
-                    32 total prospect replies
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                  <div className="text-xs font-medium text-slate-500">Indian Response Rate</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">27.0%</div>
+                  <div className="text-xs text-emerald-700 font-semibold mt-2">
+                    35 total prospect replies
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 to-slate-900 border border-emerald-500/30 shadow-sm relative overflow-hidden">
-                  <div className="text-xs font-medium text-emerald-300">Qualified Meetings Booked</div>
-                  <div className="text-3xl font-black text-emerald-400 mt-1">10</div>
-                  <div className="text-xs text-emerald-300/80 mt-2 flex items-center gap-1">
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 shadow-xs">
+                  <div className="text-xs font-medium text-emerald-800">Meetings & Samples Requested</div>
+                  <div className="text-3xl font-black text-emerald-700 mt-1">11</div>
+                  <div className="text-xs text-emerald-800 mt-2 flex items-center gap-1 font-semibold">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>Cal.com automated bookings</span>
+                    <span>Gurgaon, Mumbai & Bangalore leads</span>
                   </div>
                 </div>
               </div>
 
-              {/* Quick Hero Setup Box */}
-              <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-[#111827] to-slate-900 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-4 h-4 text-emerald-400" />
-                    <h3 className="font-bold text-white text-base">Instant Outbound Setup</h3>
-                  </div>
-                  <p className="text-xs text-slate-400">
-                    Enter your product website URL. Explee extracts your ICP, finds verified decision-makers, and writes custom cold sequences.
-                  </p>
-                </div>
+              {/* Instant Website Input Hero Box */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                 <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-bold text-slate-900 text-base">Analyze Your Business / Website (Live Scrape)</h3>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Apni website URL daalein ya product description likhein (e.g. Dehydrated vegetables, B2B wholesale, D2C agency). Explee live website read karke exact Indian B2B buyers aur custom pitch generate karega.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <input
                     type="url"
                     value={crawlUrl}
                     onChange={(e) => setCrawlUrl(e.target.value)}
-                    placeholder="https://yourcompany.com"
-                    className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 w-64 focus:outline-none focus:border-emerald-500"
+                    placeholder="https://yourcompany.in (or .com)"
+                    className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                   />
-                  <button
-                    onClick={() => {
-                      setActiveTab('onboarding');
-                      handleAnalyzeDomain();
-                    }}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-md shadow-emerald-600/30"
-                  >
-                    <span>Analyze & Start</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualDescription}
+                      onChange={(e) => setManualDescription(e.target.value)}
+                      placeholder="e.g. Bulk dehydrated onion & garlic manufacturer in India"
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
+                    />
+                    <button
+                      onClick={() => {
+                        setActiveTab('onboarding');
+                        handleAnalyzeDomain();
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm whitespace-nowrap"
+                    >
+                      <span>Analyze Site</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Active Campaigns List */}
-              <div className="rounded-2xl bg-[#111827]/70 border border-slate-800 overflow-hidden">
-                <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+                <div className="p-4 border-b border-slate-200 flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-white text-sm">Active Autonomous Campaigns</h3>
-                    <p className="text-xs text-slate-400">Live AI outbound agents running on pay-as-you-go delivery</p>
+                    <h3 className="font-bold text-slate-900 text-sm">Active Indian Outbound Campaigns</h3>
+                    <p className="text-xs text-slate-500">Autonomous outreach running across Indian hubs (NCR, Mumbai, Bangalore)</p>
                   </div>
                   <button
                     onClick={() => setActiveTab('campaigns')}
-                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                    className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
                   >
-                    <span>Manage all sequences</span>
+                    <span>Manage all campaigns</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div className="divide-y divide-slate-800/80">
+                <div className="divide-y divide-slate-100">
                   {campaigns.map(cmp => (
-                    <div key={cmp.id} className="p-4 flex items-center justify-between hover:bg-slate-800/20 transition-colors">
+                    <div key={cmp.id} className="p-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2.5">
-                          <span className="font-semibold text-sm text-white">{cmp.name}</span>
+                          <span className="font-semibold text-sm text-slate-900">{cmp.name}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             cmp.status === 'active'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
                           }`}>
                             {cmp.status.toUpperCase()}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-400 flex items-center gap-4">
-                          <span>🎯 {cmp.leadsCount} Target Leads</span>
-                          <span>📤 {cmp.sentCount} Sent</span>
+                        <div className="text-xs text-slate-500 flex items-center gap-4">
+                          <span>🎯 {cmp.leadsCount} Indian Leads</span>
+                          <span>📤 {cmp.sentCount} Dispatched</span>
                           <span>📬 {cmp.replyCount} Replies ({(cmp.replyCount / (cmp.sentCount || 1) * 100).toFixed(0)}%)</span>
-                          <span className="text-emerald-400 font-medium">📅 {cmp.meetingsBooked} Meetings</span>
+                          <span className="text-emerald-700 font-semibold">📅 {cmp.meetingsBooked} Deals/Meetings</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleToggleCampaign(cmp.id)}
-                          className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
                           title={cmp.status === 'active' ? 'Pause Campaign' : 'Resume Campaign'}
                         >
-                          {cmp.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 text-emerald-400" />}
+                          {cmp.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 text-emerald-600" />}
                         </button>
                         <button
                           onClick={() => handleDispatchBatch(cmp.id)}
                           disabled={isSendingBatch || cmp.status !== 'active'}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-40"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-40"
                         >
-                          <Send className="w-3.5 h-3.5" />
-                          <span>Dispatch 10 Emails ($0.40)</span>
+                          <Send className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Send 10 Batch Emails (₹33)</span>
                         </button>
                       </div>
                     </div>
@@ -586,45 +610,61 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 2: URL TO ICP WIZARD */}
+          {/* TAB 2: URL TO ICP WIZARD (LIGHT THEME) */}
           {activeTab === 'onboarding' && (
             <div className="max-w-4xl mx-auto space-y-6">
-              <div className="p-6 rounded-2xl bg-[#111827]/80 border border-slate-800 space-y-4">
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                 <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-emerald-400" />
-                    <span>Website Domain Crawl & ICP Synthesis</span>
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-blue-600" />
+                    <span>Real Website Scraper & Indian B2B ICP Extractor</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Explee’s AI scans your landing page copy, value proposition, and customer transformation to automatically construct your target personas.
+                  <p className="text-xs text-slate-500 mt-1">
+                    Explee aapki live website ke HTML copy aur text ko crawl karega aur pata lagayega ke Indian market me kaunsi companies aur decision-makers (Purchase Managers, D2C Founders) aapka product khareedenge.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="relative flex-1">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Website URL (Live Crawl)
+                    </label>
                     <input
                       type="url"
                       value={crawlUrl}
                       onChange={(e) => setCrawlUrl(e.target.value)}
-                      placeholder="https://yourproduct.com"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      placeholder="https://yourwebsite.in"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
-                    <Globe className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Aapka Product / Business Kya Hai? (Direct Details)
+                    </label>
+                    <textarea
+                      value={manualDescription}
+                      onChange={(e) => setManualDescription(e.target.value)}
+                      rows={2}
+                      placeholder="e.g. Dehydrated onion flakes, garlic powder, spray-dried fruit powders manufacturer for FMCG brands in India."
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
+                    />
+                  </div>
+
                   <button
                     onClick={handleAnalyzeDomain}
                     disabled={isCrawling}
-                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/25 disabled:opacity-50"
+                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
                   >
                     {isCrawling ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Scanning Website...</span>
+                        <span>Live Crawling Website & Running Gemini AI...</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        <span>Analyze Domain</span>
+                        <span>Analyze Website & Generate Indian ICP</span>
                       </>
                     )}
                   </button>
@@ -633,34 +673,34 @@ export default function App() {
 
               {/* ICP Results Preview */}
               {icpData && (
-                <div className="p-6 rounded-2xl bg-[#111827] border border-emerald-500/30 space-y-6 animate-fadeIn">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="p-6 rounded-2xl bg-white border border-emerald-200 shadow-sm space-y-6">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">AI Synthesized ICP</span>
-                      <h3 className="text-xl font-bold text-white">{icpData.companyName}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">{icpData.headline}</p>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Targeted Indian ICP</span>
+                      <h3 className="text-xl font-bold text-slate-900">{icpData.companyName}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{icpData.headline}</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-semibold">
-                        {icpData.confidenceScore}% ICP Confidence
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                        {icpData.confidenceScore}% Indian Market Match
                       </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Transformation / Value Prop</h4>
-                      <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Value Proposition for Indian Buyers</h4>
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium">
                         {icpData.valueProposition}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Key Customer Pain Points</h4>
+                      <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Pain Points Solved in India</h4>
                       <div className="space-y-1.5">
                         {icpData.keyPainPoints?.map((p, idx) => (
-                          <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-slate-950/50 border border-slate-800/80 text-xs text-slate-300">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5"></span>
+                          <div key={idx} className="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5"></span>
                             <span>{p}</span>
                           </div>
                         ))}
@@ -669,33 +709,33 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-800">
-                      <div className="text-xs text-slate-400 font-medium mb-2">Target Personas</div>
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="text-xs text-slate-500 font-semibold mb-2">Indian Decision Makers</div>
                       <div className="flex flex-wrap gap-1.5">
                         {icpData.targetJobTitles?.map((t, idx) => (
-                          <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-200 font-medium">
+                          <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-800 font-medium shadow-2xs">
                             {t}
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-800">
-                      <div className="text-xs text-slate-400 font-medium mb-2">Target Industries</div>
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="text-xs text-slate-500 font-semibold mb-2">Target Industries (India)</div>
                       <div className="flex flex-wrap gap-1.5">
                         {icpData.targetIndustries?.map((ind, idx) => (
-                          <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-200 font-medium">
+                          <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-800 font-medium shadow-2xs">
                             {ind}
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-800">
-                      <div className="text-xs text-slate-400 font-medium mb-2">Company Size</div>
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="text-xs text-slate-500 font-semibold mb-2">Company Size</div>
                       <div className="flex flex-wrap gap-1.5">
                         {icpData.targetHeadcounts?.map((h, idx) => (
-                          <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-200 font-medium">
+                          <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-800 font-medium shadow-2xs">
                             {h}
                           </span>
                         ))}
@@ -703,19 +743,19 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                  <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                     <button
                       onClick={() => setActiveTab('leads')}
-                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition-colors"
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-800 transition-colors"
                     >
-                      Search Decision-Makers
+                      Search Indian Decision-Makers
                     </button>
                     <button
                       onClick={() => setActiveTab('campaigns')}
-                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition-colors shadow-lg shadow-emerald-600/30 flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-colors shadow-sm flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>Proceed to AI Sequence Builder</span>
+                      <span>Proceed to Indian Sequence Builder</span>
                     </button>
                   </div>
                 </div>
@@ -723,125 +763,122 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 3: B2B LEADS & LOOKALIKES */}
+          {/* TAB 3: INDIAN B2B LEADS & LOOKALIKES */}
           {activeTab === 'leads' && (
             <div className="space-y-6 max-w-7xl mx-auto">
-              {/* Search & Lookalikes Bar */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2 p-4 rounded-2xl bg-[#111827]/80 border border-slate-800 flex items-center gap-3">
+              {/* Filter Bar with Indian Cities */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-2 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
                   <div className="relative flex-1">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && fetchLeads()}
-                      placeholder="Search by name, company, title, or skill..."
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      placeholder="Search company, founder, procurement, or city..."
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
-                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   </div>
-                  <select
-                    value={selectedIndustry}
-                    onChange={(e) => setSelectedIndustry(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none"
-                  >
-                    <option value="All">All Industries</option>
-                    <option value="B2B SaaS">B2B SaaS</option>
-                    <option value="Fintech">Fintech</option>
-                    <option value="Marketing & Advertising">Marketing</option>
-                    <option value="Staffing & Recruiting">Recruiting</option>
-                  </select>
                   <button
                     onClick={fetchLeads}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-colors"
                   >
                     Filter
                   </button>
                 </div>
 
-                {/* Lookalike Finder */}
-                <div className="p-4 rounded-2xl bg-[#111827]/80 border border-slate-800 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={lookalikeDomain}
-                    onChange={(e) => setLookalikeDomain(e.target.value)}
-                    placeholder="Lookalike seed domain (e.g. stripe.com)"
-                    className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                  />
-                  <button
-                    onClick={handleFindLookalikes}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-emerald-400 border border-slate-700 transition-colors"
+                {/* City / Hub Selector */}
+                <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-rose-500" />
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none"
                   >
-                    Find
-                  </button>
+                    <option value="All">Pan India 🇮🇳 (All Hubs)</option>
+                    <option value="Gurgaon">Delhi-NCR / Gurgaon</option>
+                    <option value="Mumbai">Mumbai / Maharashtra</option>
+                    <option value="Bangalore">Bangalore / Karnataka</option>
+                    <option value="Ahmedabad">Gujarat / Ahmedabad</option>
+                    <option value="Pune">Pune</option>
+                    <option value="Kochi">Kerala / South India</option>
+                  </select>
+                </div>
+
+                {/* Industry Selector */}
+                <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-blue-500" />
+                  <select
+                    value={selectedIndustry}
+                    onChange={(e) => setSelectedIndustry(e.target.value)}
+                    className="w-full px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none"
+                  >
+                    <option value="All">All Categories</option>
+                    <option value="FMCG & Packaged Foods">FMCG & Foods</option>
+                    <option value="Food Processing">Food Processing</option>
+                    <option value="Spices & Seasoning">Spices & Seasoning</option>
+                    <option value="Cloud Kitchens & HORECA">Cloud Kitchens & HORECA</option>
+                    <option value="D2C Snack Brands">D2C Brands</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Lookalikes results if any */}
-              {lookalikes.length > 0 && (
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 flex items-center gap-4 overflow-x-auto">
-                  <span className="text-xs font-bold text-emerald-400 whitespace-nowrap">Lookalike Matches:</span>
-                  {lookalikes.map((lk, idx) => (
-                    <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs whitespace-nowrap">
-                      <span className="font-semibold text-white">{lk.name}</span>
-                      <span className="text-slate-400 text-[10px]">({lk.headcount})</span>
-                      <span className="text-[10px] font-bold text-emerald-400 px-1 rounded bg-emerald-500/10">{lk.similarity} match</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Leads Table */}
-              <div className="rounded-2xl bg-[#111827]/70 border border-slate-800 overflow-hidden">
-                <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+                <div className="p-4 border-b border-slate-200 flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-white text-sm">Verified Decision-Maker Profiles</h3>
-                    <p className="text-xs text-slate-400">Validated emails with under 3% bounce guarantee</p>
+                    <h3 className="font-bold text-slate-900 text-sm">Verified Indian Business Contacts</h3>
+                    <p className="text-xs text-slate-500">Verified emails & direct WhatsApp contacts with FSSAI/procurement roles</p>
                   </div>
-                  <span className="text-xs text-slate-400">{leads.length} contacts loaded</span>
+                  <span className="text-xs font-medium text-slate-500">{leads.length} contacts loaded</span>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-900/60 text-slate-400 uppercase tracking-wider text-[10px] border-b border-slate-800">
+                    <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider text-[10px] border-b border-slate-200">
                       <tr>
-                        <th className="py-3 px-4">Decision Maker</th>
-                        <th className="py-3 px-4">Title & Company</th>
-                        <th className="py-3 px-4">Industry / Size</th>
-                        <th className="py-3 px-4">Verified Email</th>
-                        <th className="py-3 px-4">Tech Stack</th>
-                        <th className="py-3 px-4 text-right">Action</th>
+                        <th className="py-3 px-4 font-bold">Decision Maker</th>
+                        <th className="py-3 px-4 font-bold">Title & Company</th>
+                        <th className="py-3 px-4 font-bold">Indian Hub</th>
+                        <th className="py-3 px-4 font-bold">Verified Email & WhatsApp</th>
+                        <th className="py-3 px-4 font-bold">Software Stack</th>
+                        <th className="py-3 px-4 text-right font-bold">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
                       {leads.map(lead => (
-                        <tr key={lead.id} className="hover:bg-slate-800/30 transition-colors">
+                        <tr key={lead.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3.5 px-4">
-                            <div className="font-semibold text-white">{lead.firstName} {lead.lastName}</div>
-                            <div className="text-[11px] text-slate-400">{lead.location}</div>
+                            <div className="font-bold text-slate-900">{lead.firstName} {lead.lastName}</div>
+                            <div className="text-[11px] text-slate-500">{lead.industry}</div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <div className="text-emerald-400 font-medium">{lead.jobTitle}</div>
-                            <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                              <span>{lead.company}</span>
-                              <ExternalLink className="w-3 h-3 text-slate-500" />
+                            <div className="text-emerald-700 font-semibold">{lead.jobTitle}</div>
+                            <div className="text-[11px] text-slate-600 font-medium">
+                              {lead.company}
                             </div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <div>{lead.industry}</div>
-                            <div className="text-[11px] text-slate-500">{lead.headcount}</div>
+                            <div className="flex items-center gap-1 font-medium text-slate-800">
+                              <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                              <span>{lead.location}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500">{lead.headcount}</div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="font-mono text-slate-200">{lead.email}</span>
-                            <div className="flex items-center gap-1 text-[10px] text-emerald-400 mt-0.5">
-                              <ShieldCheck className="w-3 h-3" />
-                              <span>Verified Deliverable</span>
-                            </div>
+                            <div className="font-mono text-slate-900 text-[11px]">{lead.email}</div>
+                            {lead.whatsapp && (
+                              <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-medium mt-0.5">
+                                <Phone className="w-3 h-3 text-emerald-600" />
+                                <span>WhatsApp: {lead.whatsapp}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="flex flex-wrap gap-1">
                               {lead.techStack?.map((t, idx) => (
-                                <span key={idx} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                                <span key={idx} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700">
                                   {t}
                                 </span>
                               ))}
@@ -850,9 +887,9 @@ export default function App() {
                           <td className="py-3.5 px-4 text-right">
                             <button
                               onClick={() => {
-                                showToast(`Added ${lead.firstName} to Campaign sequence!`);
+                                showToast(`Added ${lead.firstName} (${lead.company}) to active campaign!`);
                               }}
-                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-medium text-[11px] transition-colors"
+                              className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold text-[11px] transition-colors"
                             >
                               + Add to Campaign
                             </button>
@@ -872,28 +909,28 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Campaigns List Column */}
                 <div className="space-y-3">
-                  <h3 className="font-bold text-white text-sm">Campaigns</h3>
+                  <h3 className="font-bold text-slate-900 text-sm">Campaigns</h3>
                   {campaigns.map(cmp => (
                     <div
                       key={cmp.id}
                       onClick={() => setSelectedCampaign(cmp)}
                       className={`p-4 rounded-xl border cursor-pointer transition-all ${
                         selectedCampaign?.id === cmp.id
-                          ? 'bg-slate-900 border-emerald-500/50 shadow-md shadow-emerald-500/10'
-                          : 'bg-[#111827]/70 border-slate-800 hover:border-slate-700'
+                          ? 'bg-white border-emerald-500 shadow-md ring-2 ring-emerald-500/10'
+                          : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-semibold text-sm text-white">{cmp.name}</span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                          cmp.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                        <span className="font-bold text-sm text-slate-900">{cmp.name}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          cmp.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          {cmp.status}
+                          {cmp.status.toUpperCase()}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-400 flex justify-between">
-                        <span>Daily cap: {cmp.dailyCap}/day</span>
-                        <span className="text-emerald-400">{cmp.meetingsBooked} Meetings</span>
+                      <div className="text-xs text-slate-500 flex justify-between">
+                        <span>Daily cap: {cmp.dailyCap} emails/day</span>
+                        <span className="text-emerald-700 font-bold">{cmp.meetingsBooked} Meetings</span>
                       </div>
                     </div>
                   ))}
@@ -902,25 +939,25 @@ export default function App() {
                 {/* Sequence Detail Column */}
                 {selectedCampaign && (
                   <div className="md:col-span-2 space-y-4">
-                    <div className="p-5 rounded-2xl bg-[#111827] border border-slate-800 flex items-center justify-between">
+                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
                       <div>
-                        <h3 className="font-bold text-white text-base">{selectedCampaign.name}</h3>
-                        <p className="text-xs text-slate-400">Multi-stage cold email sequence powered by pre-warmed mailboxes</p>
+                        <h3 className="font-bold text-slate-900 text-base">{selectedCampaign.name}</h3>
+                        <p className="text-xs text-slate-500">Targeted Indian B2B outreach sequence with WhatsApp + sample dispatch</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleToggleCampaign(selectedCampaign.id)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                          className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 transition-colors"
                         >
                           {selectedCampaign.status === 'active' ? 'Pause' : 'Activate'}
                         </button>
                         <button
                           onClick={() => handleDispatchBatch(selectedCampaign.id)}
                           disabled={isSendingBatch || selectedCampaign.status !== 'active'}
-                          className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5 disabled:opacity-40"
+                          className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-40"
                         >
                           <Send className="w-3.5 h-3.5" />
-                          <span>Send 10 Batch Emails</span>
+                          <span>Dispatch 10 Batch Emails (₹33)</span>
                         </button>
                       </div>
                     </div>
@@ -928,27 +965,27 @@ export default function App() {
                     {/* Step Cards */}
                     <div className="space-y-4">
                       {selectedCampaign.steps?.map((step, idx) => (
-                        <div key={idx} className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                        <div key={idx} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center">
+                              <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">
                                 {step.stepNumber}
                               </span>
-                              <span className="font-bold text-sm text-white">
-                                {step.stepNumber === 1 ? 'Initial Cold Touchpoint' : `Follow-up (+${step.delayDays} days)`}
+                              <span className="font-bold text-sm text-slate-900">
+                                {step.stepNumber === 1 ? 'Touchpoint 1: Cold Procurement Hook' : `Touchpoint 2: Follow-up & Lab Sample (+${step.delayDays} days)`}
                               </span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                              <Clock className="w-3.5 h-3.5" />
-                              <span>{step.delayDays === 0 ? 'Sent instantly on match' : `Wait ${step.delayDays} days`}</span>
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                              <Clock className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{step.delayDays === 0 ? 'Sent on lead discovery' : `Wait ${step.delayDays} days`}</span>
                             </div>
                           </div>
 
                           <div className="space-y-2">
-                            <div className="text-xs text-slate-400 font-medium">
-                              Subject: <span className="text-slate-200 font-mono">{step.subject}</span>
+                            <div className="text-xs text-slate-500 font-semibold">
+                              Subject: <span className="text-slate-900 font-mono font-normal">{step.subject}</span>
                             </div>
-                            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-slate-300 font-mono whitespace-pre-line leading-relaxed">
+                            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 font-mono whitespace-pre-line leading-relaxed">
                               {step.body}
                             </div>
                           </div>
@@ -961,11 +998,11 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 5: UNIFIED REPLY INBOX */}
+          {/* TAB 5: UNIFIED REPLY INBOX & WHATSAPP */}
           {activeTab === 'inbox' && (
             <div className="h-full flex gap-4 max-w-7xl mx-auto">
               {/* Left Pane: Conversations List */}
-              <div className="w-80 border-r border-slate-800 pr-4 flex flex-col space-y-3">
+              <div className="w-80 border-r border-slate-200 pr-4 flex flex-col space-y-3">
                 {/* Sentiment Filter Pills */}
                 <div className="flex items-center gap-1 overflow-x-auto pb-1 text-xs">
                   {['all', 'interested', 'objection', 'unsubscribe'].map(f => (
@@ -975,10 +1012,10 @@ export default function App() {
                         setSentimentFilter(f);
                         fetchInbox(f);
                       }}
-                      className={`px-2.5 py-1 rounded-lg capitalize font-medium whitespace-nowrap transition-colors ${
+                      className={`px-3 py-1 rounded-lg capitalize font-medium whitespace-nowrap transition-colors ${
                         sentimentFilter === f
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'
+                          ? 'bg-emerald-100 text-emerald-800 font-bold border border-emerald-200'
+                          : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                       }`}
                     >
                       {f}
@@ -996,22 +1033,22 @@ export default function App() {
                       }}
                       className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                         selectedConv?.id === conv.id
-                          ? 'bg-slate-900 border-emerald-500/50 shadow-md'
-                          : 'bg-[#111827]/70 border-slate-800 hover:border-slate-700'
+                          ? 'bg-emerald-50/60 border-emerald-400 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-xs text-white truncate">{conv.leadName}</span>
+                        <span className="font-bold text-xs text-slate-900 truncate">{conv.leadName}</span>
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded capitalize ${
-                          conv.sentiment === 'interested' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                          conv.sentiment === 'objection' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                          'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                          conv.sentiment === 'interested' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                          conv.sentiment === 'objection' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                          'bg-rose-100 text-rose-800 border border-rose-200'
                         }`}>
                           {conv.sentiment}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 truncate">{conv.company}</div>
-                      <div className="text-[10px] text-slate-500 mt-1">{conv.lastMessageAt}</div>
+                      <div className="text-[11px] text-slate-600 font-medium truncate">{conv.company}</div>
+                      <div className="text-[10px] text-slate-400 mt-1">{conv.lastMessageAt}</div>
                     </div>
                   ))}
                 </div>
@@ -1019,19 +1056,27 @@ export default function App() {
 
               {/* Right Pane: Thread History & AI Reply Assistant */}
               {selectedConv ? (
-                <div className="flex-1 flex flex-col justify-between bg-[#111827]/60 rounded-2xl border border-slate-800 p-5 overflow-hidden">
+                <div className="flex-1 flex flex-col justify-between bg-white rounded-2xl border border-slate-200 p-5 shadow-xs overflow-hidden">
                   {/* Thread Header */}
-                  <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-white text-base">{selectedConv.leadName}</h3>
-                        <span className="text-xs text-slate-400">({selectedConv.jobTitle} at {selectedConv.company})</span>
+                        <h3 className="font-bold text-slate-900 text-base">{selectedConv.leadName}</h3>
+                        <span className="text-xs text-slate-500">({selectedConv.jobTitle} at {selectedConv.company})</span>
                       </div>
-                      <p className="text-xs font-mono text-slate-400">{selectedConv.email}</p>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <span className="text-xs font-mono text-slate-600">{selectedConv.email}</span>
+                        {selectedConv.whatsapp && (
+                          <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                            <Phone className="w-3 h-3 text-emerald-600" />
+                            <span>{selectedConv.whatsapp}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {selectedConv.isMeetingBooked && (
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Meeting Confirmed</span>
                       </span>
                     )}
@@ -1052,8 +1097,8 @@ export default function App() {
                         <div
                           className={`p-3.5 rounded-2xl text-xs whitespace-pre-line leading-relaxed ${
                             msg.direction === 'outbound'
-                              ? 'bg-emerald-600 text-white rounded-br-none shadow-md shadow-emerald-700/20'
-                              : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none'
+                              ? 'bg-emerald-600 text-white rounded-br-none shadow-sm'
+                              : 'bg-slate-100 text-slate-800 border border-slate-200 rounded-bl-none font-medium'
                           }`}
                         >
                           {msg.body}
@@ -1063,32 +1108,32 @@ export default function App() {
                   </div>
 
                   {/* AI Reply Generator Box */}
-                  <div className="pt-3 border-t border-slate-800 space-y-3">
+                  <div className="pt-3 border-t border-slate-200 space-y-3">
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => handleGenerateAiReply(selectedConv.id)}
                         disabled={isGeneratingReply}
-                        className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
                       >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>{isGeneratingReply ? 'Generating AI Response...' : 'Auto-Draft Response with Cal.com'}</span>
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{isGeneratingReply ? 'Generating AI Response...' : 'Auto-Draft Indian B2B Reply (WhatsApp + Samples)'}</span>
                       </button>
-                      <span className="text-[11px] text-slate-500">Autonomous SDR Mode</span>
+                      <span className="text-[11px] text-slate-400">Autonomous Indian SDR</span>
                     </div>
 
                     <textarea
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Write a message or click 'Auto-Draft Response' above..."
+                      placeholder="Write message or click 'Auto-Draft Indian B2B Reply' above..."
                       rows={3}
-                      className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className="w-full p-3 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
 
                     <div className="flex justify-end">
                       <button
                         onClick={handleSendReply}
                         disabled={!replyText.trim()}
-                        className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5 disabled:opacity-40"
+                        className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-40"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>Dispatch Reply</span>
@@ -1097,8 +1142,8 @@ export default function App() {
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 flex items-center justify-center text-slate-500 text-xs">
-                  Select a conversation thread to inspect and reply
+                <div className="flex-1 flex items-center justify-center text-slate-400 text-xs">
+                  Select a prospect conversation thread to reply
                 </div>
               )}
             </div>
@@ -1107,50 +1152,50 @@ export default function App() {
           {/* TAB 6: SENDER MAILBOX POOL */}
           {activeTab === 'mailboxes' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="p-6 rounded-2xl bg-[#111827]/80 border border-slate-800 flex items-center justify-between">
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <Server className="w-5 h-5 text-emerald-400" />
-                    <span>Pre-Warmed Mailbox Infrastructure</span>
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Server className="w-5 h-5 text-emerald-600" />
+                    <span>Pre-Warmed Senders Pool (India Optimized)</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Managed authenticated inboxes with dedicated IP rotation, SPF, DKIM, and DMARC compliance built-in.
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-emerald-400">98.5%</div>
-                  <div className="text-[11px] text-slate-400">Pool Reputation Score</div>
+                  <div className="text-2xl font-black text-emerald-700">98.7%</div>
+                  <div className="text-[11px] text-slate-500 font-medium">Pool Health Score</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {mailboxes.map(mb => (
-                  <div key={mb.id} className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                  <div key={mb.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="font-semibold text-sm text-white">{mb.name}</div>
+                      <div className="font-bold text-sm text-slate-900">{mb.name}</div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        mb.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/10 text-amber-400'
+                        mb.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                       }`}>
                         {mb.status.toUpperCase()}
                       </span>
                     </div>
 
-                    <div className="font-mono text-xs text-slate-300">{mb.email}</div>
+                    <div className="font-mono text-xs text-slate-700">{mb.email}</div>
 
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-xs">
                       <div>
-                        <div className="text-[10px] text-slate-500">Reputation</div>
-                        <div className="font-bold text-emerald-400">{mb.reputation}%</div>
+                        <div className="text-[10px] text-slate-400">Reputation</div>
+                        <div className="font-bold text-emerald-700">{mb.reputation}%</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-500">Sent Today</div>
-                        <div className="font-semibold text-white">{mb.sentToday} / {mb.dailyLimit}</div>
+                        <div className="text-[10px] text-slate-400">Sent Today</div>
+                        <div className="font-semibold text-slate-900">{mb.sentToday} / {mb.dailyLimit}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-500">Auth Status</div>
-                        <div className="text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
+                        <div className="text-[10px] text-slate-400">Deliverability</div>
+                        <div className="text-emerald-700 text-[10px] font-bold flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          <span>SPF/DKIM</span>
+                          <span>100% Inbox</span>
                         </div>
                       </div>
                     </div>
@@ -1163,69 +1208,68 @@ export default function App() {
           {/* TAB 7: CREDITS & BILLING */}
           {activeTab === 'billing' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              {/* Credit Wallet Overview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-[#111827] border border-slate-800">
-                  <div className="text-xs text-slate-400 font-medium">Available Credits</div>
-                  <div className="text-3xl font-black text-white mt-1">
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                  <div className="text-xs text-slate-500 font-medium">Available Credits</div>
+                  <div className="text-3xl font-black text-slate-900 mt-1">
                     ${(workspace.credit_balance_cents / 100).toFixed(2)}
                   </div>
-                  <div className="text-xs text-slate-400 mt-2">
-                    ~{Math.floor(workspace.credit_balance_cents / 4)} outbound emails
+                  <div className="text-xs text-slate-500 mt-2 font-medium">
+                    ~₹{((workspace.credit_balance_cents / 100) * 85).toFixed(0)} ({Math.floor(workspace.credit_balance_cents / 4)} emails)
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#111827] border border-slate-800">
-                  <div className="text-xs text-slate-400 font-medium">Daily Spend Cap</div>
-                  <div className="text-3xl font-black text-white mt-1">
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                  <div className="text-xs text-slate-500 font-medium">Daily Spend Cap</div>
+                  <div className="text-3xl font-black text-slate-900 mt-1">
                     ${(workspace.daily_spend_limit_cents / 100).toFixed(2)}
                   </div>
-                  <div className="text-xs text-emerald-400 mt-2">
-                    ${(workspace.spent_today_cents / 100).toFixed(2)} spent today
+                  <div className="text-xs text-emerald-700 font-semibold mt-2">
+                    ${(workspace.spent_today_cents / 100).toFixed(2)} spent today (~₹306)
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#111827] border border-slate-800 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
                   <div>
-                    <div className="text-xs text-slate-400 font-medium">Pay-As-You-Go Rates</div>
-                    <div className="text-xs text-slate-300 mt-1 font-mono">
-                      <div>• $0.04 per cold email sent</div>
-                      <div>• $0.01 per lead enriched</div>
+                    <div className="text-xs text-slate-500 font-medium">Transparent Rates</div>
+                    <div className="text-xs text-slate-700 mt-1 font-mono font-medium">
+                      <div>• ₹3.30 ($0.04) per cold email</div>
+                      <div>• ₹0.85 ($0.01) per lead enriched</div>
                     </div>
                   </div>
-                  <div className="text-[11px] text-emerald-400 font-medium">No recurring subscription lock-in</div>
+                  <div className="text-[11px] text-emerald-700 font-bold">No recurring lock-in contracts</div>
                 </div>
               </div>
 
               {/* Instant Credit Packs */}
-              <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-[#111827] to-slate-900 border border-slate-800 space-y-4">
-                <h3 className="font-bold text-white text-sm">Top-Up Credit Packs</h3>
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                <h3 className="font-bold text-slate-900 text-sm">Top-Up Credit Packs</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
-                    { amount: 5000, label: '$50 Pack', emails: '1,250 emails', popular: false },
-                    { amount: 10000, label: '$100 Pack', emails: '2,500 emails', popular: true },
-                    { amount: 25000, label: '$250 Pack', emails: '6,250 emails', popular: false }
+                    { amount: 5000, label: '₹4,250 ($50)', emails: '1,250 verified emails', popular: false },
+                    { amount: 10000, label: '₹8,500 ($100)', emails: '2,500 verified emails', popular: true },
+                    { amount: 25000, label: '₹21,250 ($250)', emails: '6,250 verified emails', popular: false }
                   ].map((p, idx) => (
                     <div
                       key={idx}
                       className={`p-4 rounded-xl border relative flex flex-col justify-between ${
-                        p.popular ? 'bg-slate-900 border-emerald-500/60' : 'bg-slate-950/60 border-slate-800'
+                        p.popular ? 'bg-emerald-50/50 border-emerald-300 ring-1 ring-emerald-300' : 'bg-slate-50 border-slate-200'
                       }`}
                     >
                       {p.popular && (
-                        <span className="absolute -top-2.5 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-black">
-                          Most Popular
+                        <span className="absolute -top-2.5 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                          Most Popular in India
                         </span>
                       )}
                       <div>
-                        <div className="font-bold text-white text-base">{p.label}</div>
-                        <div className="text-xs text-emerald-400 font-medium mt-0.5">{p.emails}</div>
+                        <div className="font-bold text-slate-900 text-base">{p.label}</div>
+                        <div className="text-xs text-emerald-700 font-bold mt-0.5">{p.emails}</div>
                       </div>
                       <button
                         onClick={() => handleTopupCredits(p.amount)}
-                        className="mt-4 w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors shadow-md shadow-emerald-700/20"
+                        className="mt-4 w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs"
                       >
-                        Buy Credits
+                        Buy Credits (UPI / Card)
                       </button>
                     </div>
                   ))}
@@ -1233,23 +1277,23 @@ export default function App() {
               </div>
 
               {/* Transactions Ledger */}
-              <div className="rounded-2xl bg-[#111827]/70 border border-slate-800 overflow-hidden">
-                <div className="p-4 border-b border-slate-800">
-                  <h3 className="font-bold text-white text-sm">Credit Ledger & Transaction History</h3>
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+                <div className="p-4 border-b border-slate-200">
+                  <h3 className="font-bold text-slate-900 text-sm">Credit Ledger & Transaction History</h3>
                 </div>
-                <div className="divide-y divide-slate-800/60">
+                <div className="divide-y divide-slate-100">
                   {transactions.map(tx => (
                     <div key={tx.id} className="p-3.5 flex items-center justify-between text-xs">
                       <div>
-                        <div className="font-medium text-slate-200">{tx.description}</div>
-                        <div className="text-[10px] text-slate-500">{tx.date}</div>
+                        <div className="font-semibold text-slate-800">{tx.description}</div>
+                        <div className="text-[10px] text-slate-400">{tx.date}</div>
                       </div>
                       <div className="text-right">
-                        <div className={`font-mono font-bold ${tx.amountCents > 0 ? 'text-emerald-400' : 'text-slate-300'}`}>
+                        <div className={`font-mono font-bold ${tx.amountCents > 0 ? 'text-emerald-700' : 'text-slate-700'}`}>
                           {tx.amountCents > 0 ? `+` : ``}${(tx.amountCents / 100).toFixed(2)}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          Balance: ${(tx.balanceAfter / 100).toFixed(2)}
+                          Balance: ${(tx.balanceAfter / 100).toFixed(2)} (~₹{((tx.balanceAfter / 100) * 85).toFixed(0)})
                         </div>
                       </div>
                     </div>

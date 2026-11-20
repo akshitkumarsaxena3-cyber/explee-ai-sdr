@@ -29,6 +29,7 @@ if (geminiApiKey) {
   }
 }
 
+// Multi-model Gemini caller with fallback
 async function generateWithGemini(prompt) {
   if (!genAI) return null;
   const models = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
@@ -38,322 +39,424 @@ async function generateWithGemini(prompt) {
       const result = await model.generateContent(prompt);
       return result.response.text();
     } catch (err) {
-      // continue to next model
+      // try next
     }
   }
   return null;
 }
 
+// Live Website Scraper Function
+async function scrapeWebsiteContent(targetUrl) {
+  try {
+    let formattedUrl = targetUrl.trim();
+    if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+      formattedUrl = 'https://' + formattedUrl;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+    const response = await fetch(formattedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+
+    // Extract Title
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : '';
+
+    // Extract Meta Description
+    const metaMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i) ||
+                      html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']description["']/i);
+    const metaDesc = metaMatch ? metaMatch[1].trim() : '';
+
+    // Extract H1 and H2
+    const h1s = [...html.matchAll(/<h1[^>]*>([^<]+)<\/h1>/gi)].map(m => m[1].trim()).slice(0, 3);
+    const h2s = [...html.matchAll(/<h2[^>]*>([^<]+)<\/h2>/gi)].map(m => m[1].trim()).slice(0, 5);
+
+    // Clean body text
+    let cleanText = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+      .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 2500);
+
+    return {
+      success: true,
+      url: formattedUrl,
+      title,
+      metaDesc,
+      headings: [...h1s, ...h2s],
+      textContent: cleanText
+    };
+  } catch (err) {
+    return {
+      success: false,
+      url: targetUrl,
+      error: err.message,
+      textContent: ''
+    };
+  }
+}
+
 // -------------------------------------------------------------
-// In-Memory Database State (Production uses PostgreSQL / schema.sql)
+// In-Memory Database State: Indian Market & Regional Focus 🇮🇳
 // -------------------------------------------------------------
 let state = {
   workspace: {
-    id: 'ws_demo_8829',
-    name: 'Acme Growth Labs',
-    credit_balance_cents: 3000, // $30.00 default free credits
-    daily_spend_limit_cents: 2000, // $20.00 / day
-    spent_today_cents: 360, // $3.60 spent today
+    id: 'ws_india_01',
+    name: 'India B2B Growth Engine',
+    credit_balance_cents: 3000, // $30.00 (~ ₹2,500 credits)
+    daily_spend_limit_cents: 2000,
+    spent_today_cents: 360,
     currency: 'USD',
   },
   icpProfile: {
-    companyName: 'ScaleVector AI',
-    websiteUrl: 'https://scalevector.ai',
-    headline: 'Autonomous B2B Outbound SDR & Pipeline Engine',
-    valueProposition: 'Help B2B SaaS companies generate qualified pipeline without hiring manual SDRs or configuring custom DNS warmup.',
-    targetIndustries: ['B2B SaaS', 'Marketing & Advertising', 'Fintech', 'Staffing & Recruiting'],
-    targetHeadcounts: ['11-50 employees', '51-200 employees'],
-    targetJobTitles: ['VP of Sales', 'Head of Growth', 'Chief Revenue Officer', 'Founder & CEO'],
+    companyName: 'Bharat B2B & D2C Supply Network',
+    websiteUrl: 'https://dehydrated-products-india.in',
+    headline: 'Bulk Dehydrated Vegetables, Fruits & Spices Supply for Indian FMCG & D2C Brands',
+    valueProposition: 'Direct factory sourcing of premium dehydrated onion, garlic, ginger, and fruit powders with FSSAI & ISO certification at wholesale mandi rates.',
+    targetIndustries: ['FMCG & Packaged Foods', 'Spices & Seasoning Manufacturers', 'D2C Snack Brands', 'Cloud Kitchens & HORECA', 'Food Processing Exports'],
+    targetHeadcounts: ['10-50 employees', '50-250 employees', '250+ enterprise'],
+    targetJobTitles: ['Head of Procurement', 'Purchase Manager', 'VP Supply Chain', 'Co-Founder & COO', 'Head of Sourcing'],
     keyPainPoints: [
-      'Cold emails landing in spam folders',
-      'Spending $6,000+/mo on SDR salaries with low reply rates',
-      'Fragmented stack: buying data on Apollo + warmup on Instantly + CRM'
-    ]
+      'Seasonal price fluctuations in fresh raw produce',
+      'High wastage and short shelf life of raw onions/garlic',
+      'Unreliable wholesale mandi suppliers with inconsistent moisture & quality',
+      'Difficulty finding FSSAI/APEDA compliant bulk export-grade ingredients'
+    ],
+    confidenceScore: 98
   },
   mailboxes: [
-    { id: 'mb_1', email: 'alex@scalevector-reach.com', name: 'Alex Rivera', status: 'active', dailyLimit: 50, sentToday: 24, reputation: 99.2 },
-    { id: 'mb_2', email: 'sophia@scalevector-outreach.com', name: 'Sophia Chen', status: 'active', dailyLimit: 50, sentToday: 18, reputation: 98.7 },
-    { id: 'mb_3', email: 'marcus@scalevector-hq.net', name: 'Marcus Vance', status: 'active', dailyLimit: 50, sentToday: 32, reputation: 98.4 },
-    { id: 'mb_4', email: 'clara@scalevector-leads.io', name: 'Clara Oswald', status: 'warming', dailyLimit: 25, sentToday: 11, reputation: 97.8 }
+    { id: 'mb_1', email: 'arjun.sharma@growthreach.in', name: 'Arjun Sharma', status: 'active', dailyLimit: 50, sentToday: 26, reputation: 99.4 },
+    { id: 'mb_2', email: 'priya.nair@b2bconnect.co.in', name: 'Priya Nair', status: 'active', dailyLimit: 50, sentToday: 19, reputation: 98.9 },
+    { id: 'mb_3', email: 'rahul.verma@salesoutreach.in', name: 'Rahul Verma', status: 'active', dailyLimit: 50, sentToday: 31, reputation: 98.6 },
+    { id: 'mb_4', email: 'ananya.iyer@directlead.in', name: 'Ananya Iyer', status: 'warming', dailyLimit: 30, sentToday: 14, reputation: 97.8 }
   ],
   campaigns: [
     {
-      id: 'cmp_101',
-      name: 'Q4 US SaaS VPs of Sales — Pain Point Cold Hook',
+      id: 'cmp_ind_01',
+      name: '🇮🇳 India D2C & FMCG Brands — Bulk Dehydrated Ingredients Hook',
       status: 'active',
-      dailyCap: 45,
-      leadsCount: 142,
-      sentCount: 94,
-      openCount: 66, // 70.2%
-      replyCount: 23, // 24.5%
-      meetingsBooked: 7,
+      dailyCap: 40,
+      leadsCount: 168,
+      sentCount: 96,
+      openCount: 71, // 73.9%
+      replyCount: 26, // 27.0%
+      meetingsBooked: 8,
       steps: [
         {
           stepNumber: 1,
           delayDays: 0,
-          subject: 'quick question re: {{company}}\'s outbound pipeline',
-          body: 'Hey {{firstName}},\n\nSaw that {{company}} is actively scaling the sales team. Most {{jobTitle}}s we speak with in {{industry}} are hitting a wall with SDR cold email deliverability lately.\n\nWe built an autonomous AI SDR that finds verified decision-makers, sends from pre-warmed inboxes, and books meetings directly into your calendar for ~$0.04/email.\n\nWould you be against a 5-min intro this Thursday to see how it works?\n\nBest,\nAlex Rivera\nScaleVector'
+          subject: 'quick question re: {{company}}\'s raw ingredient sourcing',
+          body: 'Namaste {{firstName}},\n\nSaw that {{company}} is rapidly expanding its product portfolio in {{location}}.\n\nMost {{jobTitle}}s in the {{industry}} sector we speak with in India struggle with erratic raw produce prices and 15-20% shelf-life wastage with traditional mandi vendors.\n\nWe provide factory-direct, FSSAI-certified dehydrated ingredients (spray-dried & hot-air dried onion, garlic, ginger powders & flakes) with guaranteed uniform quality and wholesale bulk pricing.\n\nWould you be open to a quick 5-min chat or receiving our product catalogue & bulk rate card on WhatsApp?\n\nDhanyawad,\nArjun Sharma\nHead of Enterprise Supply'
         },
         {
           stepNumber: 2,
           delayDays: 3,
-          subject: 'Re: quick question re: {{company}}\'s outbound pipeline',
-          body: 'Hey {{firstName}} - following up with a quick stat: one of our B2B SaaS partners booked 18 qualified demos in their first 14 days using this exact flow.\n\nHere is my direct calendar if 10 mins works: https://cal.com/alex-scalevector/demo\n\nCheers,\nAlex'
+          subject: 'Re: quick question re: {{company}}\'s raw ingredient sourcing',
+          body: 'Hi {{firstName}},\n\nFollowing up on my previous note. We recently helped a leading D2C snack brand in Bangalore reduce their raw seasoning procurement costs by 22% while eliminating batch moisture variance.\n\nCan dispatch free lab sample pouches to your manufacturing plant if you share your shipping address, or we can connect briefly: https://cal.com/arjun-b2b/15min\n\nRegards,\nArjun Sharma\nMob/WhatsApp: +91 98112 XXXXX'
         }
       ]
     },
     {
-      id: 'cmp_102',
-      name: 'Fintech Head of Growth — Lead Pipeline Engine',
+      id: 'cmp_ind_02',
+      name: '🇮🇳 Cloud Kitchens & HORECA Chains — Food Procurement Sourcing',
       status: 'paused',
       dailyCap: 30,
-      leadsCount: 88,
-      sentCount: 42,
-      openCount: 29, // 69.0%
-      replyCount: 9, // 21.4%
+      leadsCount: 82,
+      sentCount: 38,
+      openCount: 27,
+      replyCount: 9,
       meetingsBooked: 3,
       steps: [
         {
           stepNumber: 1,
           delayDays: 0,
-          subject: 'cutting outbound CAC for {{company}}',
-          body: 'Hi {{firstName}},\n\nI noticed {{company}} has been expanding fast across {{location}}.\n\nCurious if you are looking at ways to generate qualified accounts without burning cash on traditional SDR agencies?\n\nOpen to exchanging notes?\n\nRegards,\nSophia'
+          subject: 'cutting kitchen prep time & raw food costs for {{company}}',
+          body: 'Hi {{firstName}},\n\nReaching out directly to {{company}}\'s sourcing team in {{location}}.\n\nCurious if you are evaluating dehydrated vegetable bases to cut kitchen prep time by 40% across your outlets?\n\nHappy to share free sample batches.\n\nBest,\nPriya Nair'
         }
       ]
     }
   ],
   leads: [
     {
-      id: 'lead_1',
-      firstName: 'David',
-      lastName: 'Sterling',
-      jobTitle: 'VP of Sales',
-      company: 'Dataspire Tech',
-      domain: 'dataspire.io',
-      industry: 'B2B SaaS',
-      headcount: '51-200 employees',
-      location: 'San Francisco, CA',
-      email: 'david.sterling@dataspire.io',
-      emailStatus: 'verified',
-      linkedin: 'https://linkedin.com/in/david-sterling-sales',
-      techStack: ['Salesforce', 'HubSpot', 'Stripe']
-    },
-    {
-      id: 'lead_2',
-      firstName: 'Elena',
-      lastName: 'Rostova',
-      jobTitle: 'Head of Growth',
-      company: 'PayFlow Global',
-      domain: 'payflowglobal.com',
-      industry: 'Fintech',
-      headcount: '201-500 employees',
-      location: 'New York, NY',
-      email: 'e.rostova@payflowglobal.com',
-      emailStatus: 'verified',
-      linkedin: 'https://linkedin.com/in/elena-rostova-growth',
-      techStack: ['Segment', 'Mixpanel', 'Snowflake']
-    },
-    {
-      id: 'lead_3',
-      firstName: 'Nathan',
-      lastName: 'Cole',
-      jobTitle: 'Chief Revenue Officer',
-      company: 'CloudMetrics Inc',
-      domain: 'cloudmetrics.net',
-      industry: 'B2B SaaS',
-      headcount: '11-50 employees',
-      location: 'Austin, TX',
-      email: 'nathan@cloudmetrics.net',
-      emailStatus: 'verified',
-      linkedin: 'https://linkedin.com/in/nathan-cole-cro',
-      techStack: ['AWS', 'Next.js', 'PostgreSQL']
-    },
-    {
-      id: 'lead_4',
-      firstName: 'Sarah',
-      lastName: 'Jenkins',
-      jobTitle: 'VP Business Development',
-      company: 'AdScale Media',
-      domain: 'adscalemedia.com',
-      industry: 'Marketing & Advertising',
-      headcount: '51-200 employees',
-      location: 'London, UK',
-      email: 'sarah.j@adscalemedia.com',
-      emailStatus: 'verified',
-      linkedin: 'https://linkedin.com/in/sarah-jenkins-adscale',
-      techStack: ['Google Ads', 'Meta API', 'Shopify']
-    },
-    {
-      id: 'lead_5',
-      firstName: 'Jason',
-      lastName: 'Kovac',
+      id: 'lead_in_1',
+      firstName: 'Rohan',
+      lastName: 'Aggarwal',
       jobTitle: 'Founder & CEO',
-      company: 'HireSprint',
-      domain: 'hiresprint.io',
-      industry: 'Staffing & Recruiting',
-      headcount: '11-50 employees',
-      location: 'Toronto, Canada',
-      email: 'jason@hiresprint.io',
+      company: 'NatureCraft Organics India',
+      domain: 'naturecraftfoods.in',
+      industry: 'FMCG & Packaged Foods',
+      headcount: '51-200 employees',
+      location: 'Gurgaon, Haryana 🇮🇳',
+      email: 'rohan.aggarwal@naturecraftfoods.in',
+      whatsapp: '+91 98112 43210',
       emailStatus: 'verified',
-      linkedin: 'https://linkedin.com/in/jason-kovac-recruiting',
-      techStack: ['Greenhouse', 'Slack', 'Linear']
+      linkedin: 'https://linkedin.com/in/rohan-aggarwal-d2c',
+      techStack: ['Shopify Plus', 'Unicommerce', 'Zoho Books']
     },
     {
-      id: 'lead_6',
-      firstName: 'Priya',
-      lastName: 'Sharma',
-      jobTitle: 'Director of Demand Gen',
-      company: 'SecurePulse Systems',
-      domain: 'securepulse.com',
-      industry: 'Cybersecurity',
-      headcount: '100-250 employees',
-      location: 'Chicago, IL',
-      email: 'psharma@securepulse.com',
+      id: 'lead_in_2',
+      firstName: 'Ananya',
+      lastName: 'Deshmukh',
+      jobTitle: 'Head of Procurement & Sourcing',
+      company: 'NutriBite Consumer Products Ltd',
+      domain: 'nutribiteindia.com',
+      industry: 'Food Processing',
+      headcount: '201-500 employees',
+      location: 'Mumbai, Maharashtra 🇮🇳',
+      email: 'ananya.deshmukh@nutribiteindia.com',
+      whatsapp: '+91 98201 87654',
       emailStatus: 'verified',
-      linkedin: 'https://linkedin.com/in/priya-sharma-demandgen',
-      techStack: ['Marketo', 'Palo Alto', 'CrowdStrike']
+      linkedin: 'https://linkedin.com/in/ananya-deshmukh-procurement',
+      techStack: ['SAP S/4HANA', 'TraceX', 'Salesforce']
+    },
+    {
+      id: 'lead_in_3',
+      firstName: 'Vikramaditya',
+      lastName: 'Singhania',
+      jobTitle: 'VP Supply Chain & Operations',
+      company: 'SpiceRoots Consumer Brands',
+      domain: 'spiceroots.in',
+      industry: 'Spices & Seasoning',
+      headcount: '100-250 employees',
+      location: 'Bangalore, Karnataka 🇮🇳',
+      email: 'vikram.singhania@spiceroots.in',
+      whatsapp: '+91 98450 12345',
+      emailStatus: 'verified',
+      linkedin: 'https://linkedin.com/in/vikram-singhania-supplychain',
+      techStack: ['Increff', 'Microsoft Dynamics', 'Shopify']
+    },
+    {
+      id: 'lead_in_4',
+      firstName: 'Suresh',
+      lastName: 'Patel',
+      jobTitle: 'General Manager - Raw Procurement',
+      company: 'Gujarat Agro Processing & Exports',
+      domain: 'gujaratagrofoods.com',
+      industry: 'B2B Agri & Wholesale',
+      headcount: '150-300 employees',
+      location: 'Ahmedabad, Gujarat 🇮🇳',
+      email: 'suresh.patel@gujaratagrofoods.com',
+      whatsapp: '+91 98250 99887',
+      emailStatus: 'verified',
+      linkedin: 'https://linkedin.com/in/suresh-patel-agro',
+      techStack: ['Tally Prime', 'TradeIndia', 'Indiamart']
+    },
+    {
+      id: 'lead_in_5',
+      firstName: 'Neha',
+      lastName: 'Kulkarni',
+      jobTitle: 'Head of Vendor Partnerships',
+      company: 'UrbanPlate Cloud Kitchens',
+      domain: 'urbanplate.co.in',
+      industry: 'Cloud Kitchens & HORECA',
+      headcount: '50-150 employees',
+      location: 'Pune, Maharashtra 🇮🇳',
+      email: 'neha.kulkarni@urbanplate.co.in',
+      whatsapp: '+91 97654 32109',
+      emailStatus: 'verified',
+      linkedin: 'https://linkedin.com/in/neha-kulkarni-hospitality',
+      techStack: ['Petpooja', 'UrbanPiper', 'Slack']
+    },
+    {
+      id: 'lead_in_6',
+      firstName: 'Amit',
+      lastName: 'Malhotra',
+      jobTitle: 'Co-Founder & Director',
+      company: 'FreshFarm Direct Wholesale',
+      domain: 'freshfarmwholesale.in',
+      industry: 'B2B Food & Wholesale',
+      headcount: '25-75 employees',
+      location: 'New Delhi 🇮🇳',
+      email: 'amit@freshfarmwholesale.in',
+      whatsapp: '+91 98100 55443',
+      emailStatus: 'verified',
+      linkedin: 'https://linkedin.com/in/amit-malhotra-wholesale',
+      techStack: ['Zoho Inventory', 'WhatsApp Business API']
+    },
+    {
+      id: 'lead_in_7',
+      firstName: 'Pooja',
+      lastName: 'Iyer',
+      jobTitle: 'Chief Marketing & Growth Officer',
+      company: 'Aura Lifestyle & Nutrition',
+      domain: 'auralifestyle.in',
+      industry: 'D2C Snack Brands',
+      headcount: '30-90 employees',
+      location: 'Bangalore, Karnataka 🇮🇳',
+      email: 'pooja.iyer@auralifestyle.in',
+      whatsapp: '+91 98860 67890',
+      emailStatus: 'verified',
+      linkedin: 'https://linkedin.com/in/pooja-iyer-growth',
+      techStack: ['Klaviyo', 'Shopify', 'Meta Ads']
+    },
+    {
+      id: 'lead_in_8',
+      firstName: 'Rajiv',
+      lastName: 'Menon',
+      jobTitle: 'Director of Plant Operations',
+      company: 'SouthSpice Food Processing Ltd',
+      domain: 'southspiceexports.com',
+      industry: 'Food Processing Exports',
+      headcount: '100-250 employees',
+      location: 'Kochi, Kerala 🇮🇳',
+      email: 'rajiv.menon@southspiceexports.com',
+      whatsapp: '+91 98470 11223',
+      emailStatus: 'verified',
+      linkedin: 'https://linkedin.com/in/rajiv-menon-foodtech',
+      techStack: ['SAP ERP', 'APEDA Portal', 'QuickBooks']
     }
   ],
   conversations: [
     {
-      id: 'conv_1',
-      campaignId: 'cmp_101',
-      leadId: 'lead_1',
-      leadName: 'David Sterling',
-      company: 'Dataspire Tech',
-      jobTitle: 'VP of Sales',
-      email: 'david.sterling@dataspire.io',
+      id: 'conv_in_1',
+      campaignId: 'cmp_ind_01',
+      leadId: 'lead_in_1',
+      leadName: 'Rohan Aggarwal',
+      company: 'NatureCraft Organics India',
+      jobTitle: 'Founder & CEO',
+      email: 'rohan.aggarwal@naturecraftfoods.in',
+      whatsapp: '+91 98112 43210',
       sentiment: 'interested',
       status: 'open',
       isMeetingBooked: false,
-      lastMessageAt: '12 mins ago',
+      lastMessageAt: '15 mins ago',
       messages: [
         {
           direction: 'outbound',
-          from: 'alex@scalevector-reach.com',
-          to: 'david.sterling@dataspire.io',
-          subject: 'quick question re: Dataspire Tech\'s outbound pipeline',
-          body: 'Hey David,\n\nSaw that Dataspire Tech is actively scaling the sales team. Most VP of Saless we speak with in B2B SaaS are hitting a wall with SDR cold email deliverability lately.\n\nWe built an autonomous AI SDR that finds verified decision-makers, sends from pre-warmed inboxes, and books meetings directly into your calendar for ~$0.04/email.\n\nWould you be against a 5-min intro this Thursday to see how it works?\n\nBest,\nAlex Rivera',
-          timestamp: 'Yesterday at 3:15 PM'
+          from: 'arjun.sharma@growthreach.in',
+          to: 'rohan.aggarwal@naturecraftfoods.in',
+          subject: 'quick question re: NatureCraft Organics India\'s raw ingredient sourcing',
+          body: 'Namaste Rohan,\n\nSaw that NatureCraft Organics India is expanding its roasted snack line across Delhi NCR.\n\nWe provide factory-direct, FSSAI & ISO certified dehydrated onion & garlic powders at mandi-beating bulk pricing with zero moisture issues.\n\nOpen to reviewing our specification sheet and rate card on WhatsApp?',
+          timestamp: 'Yesterday at 4:10 PM'
         },
         {
           direction: 'inbound',
-          from: 'david.sterling@dataspire.io',
-          to: 'alex@scalevector-reach.com',
-          subject: 'Re: quick question re: Dataspire Tech\'s outbound pipeline',
-          body: 'Hey Alex,\n\nActually yes, our SDRs have been complaining about Google Workspace burn rates this quarter. Does this include pre-warmed inboxes or do we need to bring our own? Send over your booking link, I have 15 mins Friday afternoon.',
-          timestamp: '12 mins ago'
+          from: 'rohan.aggarwal@naturecraftfoods.in',
+          to: 'arjun.sharma@growthreach.in',
+          subject: 'Re: quick question re: NatureCraft Organics India\'s raw ingredient sourcing',
+          body: 'Namaste Arjun,\n\nYes, we are actively looking for reliable suppliers for dehydrated onion powder (A-grade 100 mesh) and toasted garlic flakes for our new roasted makhana batch. Can you send 2kg lab samples to our Gurgaon unit? Also please share your per-tonne wholesale quote on WhatsApp at +91 98112 43210.',
+          timestamp: '15 mins ago'
         }
       ]
     },
     {
-      id: 'conv_2',
-      campaignId: 'cmp_101',
-      leadId: 'lead_2',
-      leadName: 'Elena Rostova',
-      company: 'PayFlow Global',
-      jobTitle: 'Head of Growth',
-      email: 'e.rostova@payflowglobal.com',
+      id: 'conv_in_2',
+      campaignId: 'cmp_ind_01',
+      leadId: 'lead_in_2',
+      leadName: 'Ananya Deshmukh',
+      company: 'NutriBite Consumer Products Ltd',
+      jobTitle: 'Head of Procurement',
+      email: 'ananya.deshmukh@nutribiteindia.com',
+      whatsapp: '+91 98201 87654',
       sentiment: 'objection',
       status: 'open',
       isMeetingBooked: false,
-      lastMessageAt: '2 hours ago',
+      lastMessageAt: '1 hour ago',
       messages: [
         {
-          direction: 'outbound',
-          from: 'alex@scalevector-reach.com',
-          to: 'e.rostova@payflowglobal.com',
-          subject: 'quick question re: PayFlow Global\'s outbound pipeline',
-          body: 'Hey Elena,\n\nNoticed PayFlow Global expanding fast. Quick question: are you evaluating ways to automate cold outbound without burning cash on traditional SDR tools?\n\nBest,\nAlex',
-          timestamp: 'Yesterday'
-        },
-        {
           direction: 'inbound',
-          from: 'e.rostova@payflowglobal.com',
-          to: 'alex@scalevector-reach.com',
-          subject: 'Re: quick question re: PayFlow Global\'s outbound pipeline',
-          body: 'We currently run Apollo and Instantly. What specific differentiator does your platform provide over that combo?',
-          timestamp: '2 hours ago'
+          from: 'ananya.deshmukh@nutribiteindia.com',
+          to: 'arjun.sharma@growthreach.in',
+          subject: 'Re: Ingredient specs inquiry',
+          body: 'What is your Minimum Order Quantity (MOQ) and do you have third-party Certificate of Analysis (COA) for pesticide residues and heavy metals?',
+          timestamp: '1 hour ago'
         }
       ]
     },
     {
-      id: 'conv_3',
-      campaignId: 'cmp_101',
-      leadId: 'lead_5',
-      leadName: 'Jason Kovac',
-      company: 'HireSprint',
-      jobTitle: 'Founder & CEO',
-      email: 'jason@hiresprint.io',
+      id: 'conv_in_3',
+      campaignId: 'cmp_ind_01',
+      leadId: 'lead_in_7',
+      leadName: 'Pooja Iyer',
+      company: 'Aura Lifestyle & Nutrition',
+      jobTitle: 'Chief Marketing Officer',
+      email: 'pooja.iyer@auralifestyle.in',
+      whatsapp: '+91 98860 67890',
       sentiment: 'interested',
       status: 'closed',
       isMeetingBooked: true,
-      lastMessageAt: '1 day ago',
+      lastMessageAt: 'Yesterday',
       messages: [
         {
           direction: 'inbound',
-          from: 'jason@hiresprint.io',
-          to: 'alex@scalevector-reach.com',
+          from: 'pooja.iyer@auralifestyle.in',
+          to: 'arjun.sharma@growthreach.in',
           subject: 'Re: quick question',
-          body: 'Sounds good Alex. Booked 2:30pm EST via your Cal link. See you then.',
-          timestamp: '1 day ago'
-        }
-      ]
-    },
-    {
-      id: 'conv_4',
-      campaignId: 'cmp_101',
-      leadId: 'lead_4',
-      leadName: 'Sarah Jenkins',
-      company: 'AdScale Media',
-      jobTitle: 'VP Business Development',
-      email: 'sarah.j@adscalemedia.com',
-      sentiment: 'unsubscribe',
-      status: 'closed',
-      isMeetingBooked: false,
-      lastMessageAt: '2 days ago',
-      messages: [
-        {
-          direction: 'inbound',
-          from: 'sarah.j@adscalemedia.com',
-          to: 'alex@scalevector-reach.com',
-          subject: 'Re: quick question',
-          body: 'Not interested at this time, please remove from your list.',
-          timestamp: '2 days ago'
+          body: 'Booked 3:30 PM IST via your Cal link. Our purchase manager will also join the call.',
+          timestamp: 'Yesterday'
         }
       ]
     }
   ],
   transactions: [
-    { id: 'tx_1', description: 'Free Welcome Starter Credits', amountCents: 3000, type: 'bonus', date: '2026-11-18', balanceAfter: 3000 },
-    { id: 'tx_2', description: 'Batch Dispatch: 42 emails (Q4 US SaaS VPs)', amountCents: -168, type: 'spend_email', date: '2026-11-19', balanceAfter: 2832 },
-    { id: 'tx_3', description: 'Lead Enrichment: 15 verified contacts', amountCents: -15, type: 'spend_enrichment', date: '2026-11-19', balanceAfter: 2817 },
-    { id: 'tx_4', description: 'Batch Dispatch: 52 emails (Q4 US SaaS VPs)', amountCents: -208, type: 'spend_email', date: '2026-11-20', balanceAfter: 2609 }
+    { id: 'tx_in_1', description: 'Free Welcome Starter Credits', amountCents: 3000, type: 'bonus', date: '2026-11-18', balanceAfter: 3000 },
+    { id: 'tx_in_2', description: 'Batch Dispatch: 48 emails (Pan-India D2C Brands)', amountCents: -192, type: 'spend_email', date: '2026-11-19', balanceAfter: 2808 },
+    { id: 'tx_in_3', description: 'Lead Enrichment: 20 Indian verified contacts', amountCents: -20, type: 'spend_enrichment', date: '2026-11-19', balanceAfter: 2788 },
+    { id: 'tx_in_4', description: 'Batch Dispatch: 48 emails (Gujarat Agro & Mumbai Food)', amountCents: -192, type: 'spend_email', date: '2026-11-20', balanceAfter: 2596 }
   ]
 };
 
 // -------------------------------------------------------------
-// Helper: Fallback / Smart Heuristic ICP Generator
+// Helper: Smart India-Centric ICP Extractor
 // -------------------------------------------------------------
-function generateHeuristicICP(url) {
+function generateIndiaCentricICP(url, scrapedText, manualDesc) {
   let domain = url.replace(/https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
-  let baseName = domain.split('.')[0] || 'Company';
+  let baseName = domain.split('.')[0] || 'Brand';
   baseName = baseName.charAt(0).toUpperCase() + baseName.slice(1);
 
+  const contextText = `${manualDesc || ''} ${scrapedText || ''}`.toLowerCase();
+
+  // If dehydration / food / agriculture
+  if (contextText.includes('dehydrat') || contextText.includes('vegetable') || contextText.includes('food') || contextText.includes('onion') || contextText.includes('spice')) {
+    return {
+      companyName: baseName + ' Food Ingredients',
+      websiteUrl: url,
+      headline: `Bulk Dehydrated Food Ingredients & Raw Sourcing for Indian FMCG & Brands`,
+      valueProposition: `Factory-direct, FSSAI & ISO certified dehydrated vegetables, fruit powders, and seasoning blends with guaranteed quality and wholesale mandi pricing across India.`,
+      targetIndustries: ['FMCG & Packaged Foods', 'Spices & Seasoning Manufacturers', 'D2C Snack Brands', 'Cloud Kitchens & HORECA', 'Food Processing Exports'],
+      targetHeadcounts: ['10-50 employees', '50-250 employees', '250+ enterprise'],
+      targetJobTitles: ['Head of Procurement', 'Purchase Manager', 'VP Supply Chain', 'Co-Founder & COO', 'Head of Sourcing'],
+      keyPainPoints: [
+        'Seasonal raw vegetable price spikes in wholesale mandis',
+        '15-20% storage and transport spoilage with fresh produce',
+        'Inconsistent moisture and batch quality from unorganized local traders',
+        'Lack of formal FSSAI & APEDA testing documentation'
+      ],
+      confidenceScore: 98
+    };
+  }
+
+  // Default intelligent Indian B2B model
   return {
     companyName: baseName,
     websiteUrl: url,
-    headline: `Modern Solutions & Growth Platform for ${baseName}`,
-    valueProposition: `Empowers teams using ${baseName} to accelerate customer acquisition and streamline daily operations with intelligent automation.`,
-    targetIndustries: ['B2B SaaS', 'Technology Services', 'Enterprise Software', 'E-commerce'],
-    targetHeadcounts: ['11-50 employees', '51-200 employees'],
-    targetJobTitles: ['VP of Sales', 'Head of Growth', 'Chief Technology Officer', 'Director of Operations'],
+    headline: `Premier B2B Solutions & Growth Partner for Indian Enterprises`,
+    valueProposition: `Empowers Indian businesses to scale operational capacity, cut procurement overheads, and streamline customer acquisition with high-ROI automated systems.`,
+    targetIndustries: ['D2C & E-commerce Brands', 'Manufacturing & Sourcing', 'IT & Tech Services', 'FMCG & Retail Distribution'],
+    targetHeadcounts: ['10-50 employees', '51-200 employees', '201-500 employees'],
+    targetJobTitles: ['Founder & Managing Director', 'Head of Procurement', 'Chief Marketing Officer', 'VP of Sales & Growth'],
     keyPainPoints: [
-      'High cost and friction in acquiring qualified B2B opportunities',
-      'Fragmented tech stack and manual data verification tasks',
-      'Scaling outreach volume without hurting domain deliverability'
+      'High cost and unreliability in traditional Indian agency / broker channels',
+      'Difficulty accessing verified decision-makers across Delhi-NCR, Mumbai & Bangalore',
+      'Low response rates on cold outreach without localized Indian business context'
     ],
-    confidenceScore: 94
+    confidenceScore: 95
   };
 }
 
@@ -366,33 +469,64 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     version: '1.0.0',
-    platform: 'Explee AI SDR Replica',
+    platform: 'Explee AI SDR Replica (Indian Market Edition 🇮🇳)',
     hasGemini: !!genAI
   });
 });
 
-// 1. Analyze Website & Generate ICP
+// 1. Analyze Website & Extract ICP (Real Scraper + Indian B2B AI)
 app.post('/api/onboarding/analyze-domain', async (req, res) => {
-  const { url } = req.body;
-  if (!url) {
-    return res.status(400).json({ error: 'URL is required' });
+  const { url, manualDescription } = req.body;
+  if (!url && !manualDescription) {
+    return res.status(400).json({ error: 'Website URL or business description is required' });
   }
 
-  // If Gemini is available, attempt intelligent reasoning
+  const targetUrl = url || 'https://mybusiness.in';
+
+  // 1. Real Website Crawl
+  let crawlResult = { textContent: '', title: '', metaDesc: '', headings: [] };
+  if (url && (url.includes('.') || url.startsWith('http'))) {
+    crawlResult = await scrapeWebsiteContent(url);
+  }
+
+  const fullContext = `
+Website URL: ${targetUrl}
+Page Title: ${crawlResult.title}
+Meta Description: ${crawlResult.metaDesc}
+Headings: ${crawlResult.headings.join(' | ')}
+Page Text: ${crawlResult.textContent}
+User's Direct Business Notes: ${manualDescription || 'None provided'}
+  `.trim();
+
+  // 2. Call Gemini AI with India-Focused Prompt
   if (genAI) {
     try {
-      const prompt = `Analyze this company website domain: "${url}".
-Return ONLY a valid JSON object with the following fields:
+      const prompt = `You are a top-tier Indian B2B Outbound Sales Director and Go-To-Market Strategist.
+Carefully examine this real company website and business description:
+
+---
+${fullContext}
+---
+
+Your goal is to build a laser-targeted B2B Ideal Customer Profile (ICP) for the INDIAN MARKET 🇮🇳.
+Identify:
+1. Exact Company Name and clean elevator pitch headline.
+2. Value Proposition (the core business transformation provided).
+3. TARGET INDUSTRIES IN INDIA: (e.g. FMCG & Packaged Foods, D2C Snack Brands, Cloud Kitchens & HORECA, Spices & Seasonings, Manufacturing, etc.).
+4. TARGET DECISION-MAKER JOB TITLES IN INDIA: (e.g. Head of Procurement, Purchase Manager, VP Supply Chain, Founder & CEO, Head of Sourcing).
+5. REAL PAIN POINTS INDIAN BUYERS FACE in this category (mandi price spikes, storage wastage, unorganized quality, etc.).
+
+Return ONLY a valid JSON object matching this exact schema:
 {
   "companyName": "string",
-  "websiteUrl": "${url}",
-  "headline": "one-sentence punchy elevator pitch",
-  "valueProposition": "one sentence explaining the transformation/result provided",
-  "targetIndustries": ["industry1", "industry2", "industry3"],
-  "targetHeadcounts": ["11-50 employees", "51-200 employees"],
-  "targetJobTitles": ["Job Title 1", "Job Title 2", "Job Title 3"],
-  "keyPainPoints": ["pain1", "pain2", "pain3"],
-  "confidenceScore": 95
+  "websiteUrl": "${targetUrl}",
+  "headline": "one-sentence punchy headline",
+  "valueProposition": "one sentence explaining the clear transformation/benefit",
+  "targetIndustries": ["industry 1", "industry 2", "industry 3", "industry 4"],
+  "targetHeadcounts": ["10-50 employees", "51-200 employees", "201-500 employees"],
+  "targetJobTitles": ["Job Title 1", "Job Title 2", "Job Title 3", "Job Title 4"],
+  "keyPainPoints": ["pain 1", "pain 2", "pain 3", "pain 4"],
+  "confidenceScore": 98
 }`;
       const text = await generateWithGemini(prompt);
       if (text) {
@@ -402,29 +536,30 @@ Return ONLY a valid JSON object with the following fields:
         return res.json(parsed);
       }
     } catch (err) {
-      console.warn('[Gemini AI] Falling back to heuristic extractor:', err.message);
+      console.warn('[Gemini AI] Analysis notice:', err.message);
     }
   }
 
-  // Fallback to high-quality heuristic extraction
-  const icp = generateHeuristicICP(url);
+  // 3. Smart Heuristic Fallback
+  const icp = generateIndiaCentricICP(targetUrl, crawlResult.textContent, manualDescription);
   state.icpProfile = icp;
   return res.json(icp);
 });
 
-// 2. Lead Discovery & Search
+// 2. Lead Discovery & Search (Filter by Indian Cities, Industries, Titles)
 app.post('/api/leads/search', (req, res) => {
-  const { query, jobTitle, industry, headcount, location } = req.body;
+  const { query, jobTitle, industry, location } = req.body;
   let results = [...state.leads];
 
   if (query) {
     const q = query.toLowerCase();
-    results = results.filter(l => 
+    results = results.filter(l =>
       l.firstName.toLowerCase().includes(q) ||
       l.lastName.toLowerCase().includes(q) ||
       l.company.toLowerCase().includes(q) ||
       l.jobTitle.toLowerCase().includes(q) ||
-      l.industry.toLowerCase().includes(q)
+      l.industry.toLowerCase().includes(q) ||
+      l.location.toLowerCase().includes(q)
     );
   }
 
@@ -436,24 +571,28 @@ app.post('/api/leads/search', (req, res) => {
     results = results.filter(l => l.industry.toLowerCase() === industry.toLowerCase());
   }
 
+  if (location && location !== 'All') {
+    results = results.filter(l => l.location.toLowerCase().includes(location.toLowerCase()));
+  }
+
   res.json({
     total: results.length,
     leads: results
   });
 });
 
-// 3. Lookalike Company Finder
+// 3. Indian Lookalike Company Finder
 app.post('/api/leads/lookalikes', (req, res) => {
   const { domain } = req.body;
   const mockLookalikes = [
-    { name: 'ApexScale Technologies', domain: 'apexscale.io', similarity: '98%', headcount: '45-120', industry: 'B2B SaaS', country: 'US' },
-    { name: 'SynapseGrowth', domain: 'synapsegrowth.com', similarity: '94%', headcount: '80-200', industry: 'B2B SaaS', country: 'US' },
-    { name: 'Vanguard Pipeline', domain: 'vanguardpipeline.net', similarity: '91%', headcount: '30-75', industry: 'Sales Tech', country: 'UK' }
+    { name: 'Vedic Roots Consumer Products', domain: 'vedicroots.in', similarity: '98%', headcount: '80-150', industry: 'D2C Food & FMCG', location: 'Gurgaon, Haryana 🇮🇳' },
+    { name: 'Bhoomi Agro Spices Ltd', domain: 'bhoomiagro.com', similarity: '95%', headcount: '120-300', industry: 'Food Processing', location: 'Ahmedabad, Gujarat 🇮🇳' },
+    { name: 'PureHarvest Organics', domain: 'pureharvest.in', similarity: '92%', headcount: '40-100', industry: 'Packaged Foods', location: 'Bangalore, Karnataka 🇮🇳' }
   ];
-  res.json({ seed: domain || 'target.com', lookalikes: mockLookalikes });
+  res.json({ seed: domain || 'indian-brand.in', lookalikes: mockLookalikes });
 });
 
-// 4. Create Campaign with AI Copy
+// 4. Create Campaign with India-Centric AI Copy
 app.post('/api/campaigns', async (req, res) => {
   const { name, targetCriteria, dailyCap, customTone } = req.body;
 
@@ -461,24 +600,24 @@ app.post('/api/campaigns', async (req, res) => {
     {
       stepNumber: 1,
       delayDays: 0,
-      subject: `quick thought for {{company}}`,
-      body: `Hi {{firstName}},\n\nSaw that you lead ${targetCriteria?.jobTitle || 'growth'} at {{company}}.\n\nWe helped teams in ${targetCriteria?.industry || 'tech'} replace manual prospecting with an autonomous AI SDR that sends from pre-warmed mailboxes.\n\nAre you open to a brief 5-minute chat to see how many qualified pipeline leads it can generate for {{company}}?\n\nBest,\nAlex Rivera`
+      subject: `raw ingredient procurement inquiry for {{company}}`,
+      body: `Namaste {{firstName}},\n\nReaching out directly regarding {{company}}\'s sourcing operations in {{location}}.\n\nWe provide factory-direct, FSSAI & ISO certified ingredients with guaranteed zero batch variance and wholesale mandi rates.\n\nWould you be open to receiving our specification sheet and wholesale rate card on WhatsApp (+91)?\n\nDhanyawad,\nArjun Sharma`
     },
     {
       stepNumber: 2,
       delayDays: 3,
-      subject: `Re: quick thought for {{company}}`,
-      body: `Hey {{firstName}} - following up here.\n\nWe recently enabled a similar team to book 14 qualified discovery calls in week one with zero deliverability issues.\n\nGrab a slot on my calendar if 10 mins works: https://cal.com/founder/demo\n\nCheers,\nAlex`
+      subject: `Re: raw ingredient procurement inquiry for {{company}}`,
+      body: `Hi {{firstName}} - following up with a quick note.\n\nWe can dispatch free sample pouches directly to your factory or procurement office in {{location}} this week.\n\nLet me know if 10 mins works for a quick phone call: https://cal.com/arjun-b2b/demo\n\nRegards,\nArjun`
     }
   ];
 
   if (genAI && customTone) {
     try {
-      const prompt = `Write a high-converting 2-step B2B cold email sequence.
-Target Persona: ${targetCriteria?.jobTitle || 'VP of Sales'} in ${targetCriteria?.industry || 'B2B SaaS'}.
+      const prompt = `Write a high-converting 2-step B2B cold email sequence tailored for INDIAN BUSINESSES 🇮🇳.
+Target Persona: ${targetCriteria?.jobTitle || 'Head of Procurement'} in ${targetCriteria?.industry || 'FMCG & Food Processing'}.
 Value Proposition: ${state.icpProfile.valueProposition}.
-Tone: ${customTone || 'conversational, concise, value-focused'}.
-Use {{firstName}} and {{company}} as variable tags.
+Tone: ${customTone || 'professional, respectful, direct value focus with WhatsApp option'}.
+Use {{firstName}}, {{company}}, and {{location}} as variable tags.
 Return ONLY valid JSON:
 [
   { "stepNumber": 1, "delayDays": 0, "subject": "string", "body": "string" },
@@ -496,7 +635,7 @@ Return ONLY valid JSON:
 
   const newCampaign = {
     id: `cmp_${Date.now()}`,
-    name: name || 'New Autonomous Outbound Campaign',
+    name: name || 'Pan-India B2B Outbound Campaign',
     status: 'active',
     dailyCap: parseInt(dailyCap, 10) || 35,
     leadsCount: state.leads.length,
@@ -538,7 +677,7 @@ app.post('/api/campaigns/:id/send-batch', (req, res) => {
     return res.status(404).json({ error: 'Campaign not found' });
   }
 
-  const costPerEmailCents = 4; // $0.04
+  const costPerEmailCents = 4; // $0.04 (~ ₹3.30)
   const totalCostCents = batchSize * costPerEmailCents;
 
   if (state.workspace.credit_balance_cents < totalCostCents) {
@@ -555,8 +694,8 @@ app.post('/api/campaigns/:id/send-batch', (req, res) => {
 
   // Update campaign stats
   campaign.sentCount += batchSize;
-  const simulatedOpens = Math.floor(batchSize * 0.7);
-  const simulatedReplies = Math.floor(batchSize * 0.22);
+  const simulatedOpens = Math.floor(batchSize * 0.74);
+  const simulatedReplies = Math.floor(batchSize * 0.26);
   const simulatedMeetings = Math.random() > 0.4 ? 1 : 0;
 
   campaign.openCount += simulatedOpens;
@@ -597,7 +736,7 @@ app.get('/api/inbox/conversations', (req, res) => {
   res.json({ conversations: convs });
 });
 
-// 9. AI Reply Assistant: Generates tailored response based on sentiment
+// 9. AI Reply Assistant: Generates Indian Contextual Responses (WhatsApp / Cal)
 app.post('/api/inbox/generate-reply', async (req, res) => {
   const { conversationId } = req.body;
   const conv = state.conversations.find(c => c.id === conversationId);
@@ -606,18 +745,15 @@ app.post('/api/inbox/generate-reply', async (req, res) => {
     return res.status(404).json({ error: 'Conversation not found' });
   }
 
-  const lastInbound = conv.messages.slice().reverse().find(m => m.direction === 'inbound');
-  const inboundText = lastInbound ? lastInbound.body : '';
-
   let replyText = '';
   if (conv.sentiment === 'interested') {
-    replyText = `Hi ${conv.leadName.split(' ')[0]},\n\nGreat to hear! Yes, we handle the entire sender mailbox infrastructure and warm-up automatically so you don't need to configure Google Workspace or DNS records.\n\nFeel free to pick any slot that fits your schedule here:\nhttps://cal.com/alex-scalevector/15min\n\nLooking forward to speaking!\n\nBest,\nAlex`;
+    replyText = `Namaste ${conv.leadName.split(' ')[0]},\n\nThank you for your response! We can definitely dispatch the 2kg lab sample pouches to your Gurgaon facility right away.\n\nI will also ping you on WhatsApp at ${conv.whatsapp || '+91 98112 XXXXX'} with our complete FSSAI lab COA and wholesale price sheet.\n\nIf you prefer a quick 10-minute briefing call with our plant head, feel free to pick a time here:\nhttps://cal.com/arjun-b2b/15min\n\nDhanyawad,\nArjun Sharma\nHead of Sourcing`;
   } else if (conv.sentiment === 'objection') {
-    replyText = `Hi ${conv.leadName.split(' ')[0]},\n\nGreat question. The main difference is speed and consolidation: unlike Apollo + Instantly where you have to manually buy domains, configure SPF/DKIM/DMARC, and wait 3 weeks for warmup, Explee handles autonomous sourcing and sending from pre-warmed pools out of the box with zero setup.\n\nHappy to share a 3-minute video showing the side-by-side workflow if helpful?\n\nBest,\nAlex`;
+    replyText = `Namaste ${conv.leadName.split(' ')[0]},\n\nOur standard Minimum Order Quantity (MOQ) is 50 kg for trial production batches, and 500 kg for regular commercial orders. All our batches come with comprehensive NABL-accredited third-party Certificate of Analysis (COA) for moisture, ash, pesticide residue, and heavy metal testing.\n\nHappy to email you our standard COA report right now?`;
   } else if (conv.sentiment === 'unsubscribe') {
-    replyText = `Hi ${conv.leadName.split(' ')[0]},\n\nYou have been removed from our list and all future communications have been suppressed. Have a great week!`;
+    replyText = `Namaste ${conv.leadName.split(' ')[0]},\n\nUnderstood. You have been removed from our list and will not receive any further emails. Thank you!`;
   } else {
-    replyText = `Hi ${conv.leadName.split(' ')[0]},\n\nThanks for following up! Happy to answer any questions or show you a quick demo whenever convenient.`;
+    replyText = `Namaste ${conv.leadName.split(' ')[0]},\n\nThanks for reaching out! Let us know whenever you would like to test our samples or connect for a quick discussion.`;
   }
 
   res.json({ suggestedReply: replyText });
@@ -634,9 +770,9 @@ app.post('/api/inbox/reply', (req, res) => {
 
   const newMessage = {
     direction: 'outbound',
-    from: 'alex@scalevector-reach.com',
+    from: 'arjun.sharma@growthreach.in',
     to: conv.email,
-    subject: `Re: follow-up`,
+    subject: `Re: procurement discussion`,
     body: bodyText,
     timestamp: 'Just now'
   };
@@ -645,7 +781,7 @@ app.post('/api/inbox/reply', (req, res) => {
   conv.status = 'replied';
   conv.lastMessageAt = 'Just now';
 
-  if (bodyText.includes('cal.com') || bodyText.includes('calendar')) {
+  if (bodyText.includes('cal.com') || bodyText.includes('WhatsApp') || bodyText.includes('sample')) {
     conv.isMeetingBooked = true;
   }
 
@@ -659,7 +795,7 @@ app.get('/api/mailboxes', (req, res) => {
     poolSummary: {
       totalMailboxes: state.mailboxes.length,
       activeMailboxes: state.mailboxes.filter(m => m.status === 'active').length,
-      averageReputation: 98.5,
+      averageReputation: 98.7,
       totalSentToday: state.mailboxes.reduce((acc, m) => acc + m.sentToday, 0)
     }
   });
@@ -682,7 +818,7 @@ app.post('/api/billing/topup', (req, res) => {
 
   state.transactions.unshift({
     id: `tx_${Date.now()}`,
-    description: `Credit Top-Up ($${(cents / 100).toFixed(2)}) via Stripe`,
+    description: `Credit Top-Up ($${(cents / 100).toFixed(2)} / ~₹${((cents / 100) * 85).toFixed(0)}) via UPI/Card`,
     amountCents: cents,
     type: 'purchase',
     date: new Date().toISOString().split('T')[0],
